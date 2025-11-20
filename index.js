@@ -1,3 +1,4 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -452,6 +453,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         const updatedQuestionData = {
             text: form.questionText.value,
+            imgurl: form.imgurl.value.trim(),
             options: [
                 form.option1.value,
                 form.option2.value,
@@ -829,7 +831,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const userAnswer = userAnswers[q.id] || null;
             const isCorrect = userAnswer === q.answer;
             if (isCorrect) correctAnswers++;
-            return { id: q.id, text: q.text, options: q.options, answer: q.answer, explanation: q.explanation, userAnswer, isCorrect };
+            return { id: q.id, text: q.text, imgurl: q.imgurl, options: q.options, answer: q.answer, explanation: q.explanation, userAnswer, isCorrect };
         });
     
         const score = Math.round((correctAnswers / questions.length) * 100);
@@ -1120,6 +1122,8 @@ window.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
+        const imageHTML = currentQuestion.imgurl ? `<img src="${currentQuestion.imgurl}" class="question-image" alt="題目圖片">` : '';
+
         return `
             <div class="exam-view-container">
                 <div class="exam-header">
@@ -1134,7 +1138,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="exam-question-card">
                     <div class="exam-question-header">
-                        <p class="exam-question-text">${currentQuestion.text}</p>
+                        <div style="flex-grow: 1;">
+                            <p class="exam-question-text">${currentQuestion.text}</p>
+                            ${imageHTML}
+                        </div>
                         ${bookmarkButtonHTML}
                     </div>
                     <ul class="exam-options-list">${optionsHTML}</ul>
@@ -1213,9 +1220,12 @@ window.addEventListener('DOMContentLoaded', () => {
                 return `<li class="${className}"><p>${option}</p></li>`;
             }).join('');
 
+            const imageHTML = res.imgurl ? `<img src="${res.imgurl}" class="question-image" alt="題目圖片">` : '';
+
             return `
                 <div class="review-question-card">
                     <p class="review-question-text"><strong>${index + 1}.</strong> ${res.text}</p>
+                    ${imageHTML}
                     <ul class="review-options-list">${optionsHTML}</ul>
                     <div class="review-summary">
                         <span>你的答案: <strong class="summary-answer ${res.isCorrect ? 'correct-text' : 'incorrect-text'}">${res.userAnswer || '未作答'}</strong></span>
@@ -1256,6 +1266,8 @@ window.addEventListener('DOMContentLoaded', () => {
             return `<li class="${className}"><p>${option}</p></li>`;
         }).join('');
 
+        const imageHTML = question.imgurl ? `<img src="${question.imgurl}" class="question-image" alt="題目圖片">` : '';
+
         return `
             <div class="modal-backdrop">
                 <div class="modal-content">
@@ -1266,6 +1278,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     <div class="modal-body">
                         <div class="review-question-card">
                             <p class="review-question-text"><strong>題目：</strong> ${question.text}</p>
+                            ${imageHTML}
                             <ul class="review-options-list">${optionsHTML}</ul>
                             <div class="explanation-box">
                                 <h5>詳解</h5>
@@ -1308,6 +1321,10 @@ window.addEventListener('DOMContentLoaded', () => {
                                     <label for="questionText">題目內文</label>
                                     ${createFormattingToolbarHTML('questionText')}
                                     <textarea id="questionText" name="questionText" rows="3" required>${q.text}</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="imgurl">圖片路徑 (imgurl)</label>
+                                    <input type="text" id="imgurl" name="imgurl" value="${q.imgurl || ''}" placeholder="例如: images/q1.jpg">
                                 </div>
                                 ${optionsHTML}
                                 <div class="form-group">
@@ -1498,17 +1515,18 @@ window.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div class="format-example-content">
                             <div id="csv-example" class="format-example">
-                                <p>CSV檔案的第一列必須是標頭，且欄位順序必須如下所示。<code>answer</code> 欄位的值必須完全匹配其中一個 <code>option</code> 欄位。</p>
-                                <pre><code>text,option1,option2,option3,option4,answer,explanation
-"宇宙中最豐富的元素是什麼？","氧","氫","碳","氦","氫","氫是宇宙中最常見的元素，構成了恆星和星系的主要部分。"
-"水的化學式是什麼？","H2O","O2","CO2","NaCl","H2O","水由兩個氫原子和一個氧原子組成。"
-"哪一位科學家提出了相對論？","牛頓","伽利略","愛因斯坦","居里夫人","愛因斯坦","阿爾伯特·愛因斯坦在20世紀初提出了狹義相對論和廣義相對論。"</code></pre>
+                                <p>CSV檔案的第一列必須是標頭，且欄位順序必須如下所示。<code>imgurl</code> 欄位為選填，可放入圖片的相對路徑或網址。<code>answer</code> 欄位的值必須完全匹配其中一個 <code>option</code> 欄位。</p>
+                                <pre><code>text,imgurl,option1,option2,option3,option4,answer,explanation
+"宇宙中最豐富的元素是什麼？","","氧","氫","碳","氦","氫","氫是宇宙中最常見的元素，構成了恆星和星系的主要部分。"
+"請看附圖，這個化學結構代表什麼？","images/structure.png","水","氧氣","二氧化碳","氯化鈉","水","由一個氧原子和兩個氫原子組成。"
+"哪一位科學家提出了相對論？","","牛頓","伽利略","愛因斯坦","居里夫人","愛因斯坦","阿爾伯特·愛因斯坦在20世紀初提出了狹義相對論和廣義相對論。"</code></pre>
                             </div>
                             <div id="json-example" class="format-example" style="display: none;">
-                                <p>JSON檔案必須是一個包含多個問題物件的陣列。每個物件的 <code>answer</code> 欄位值必須是 <code>options</code> 陣列中的其中一個字串。</p>
+                                <p>JSON檔案必須是一個包含多個問題物件的陣列。每個物件的 <code>answer</code> 欄位值必須是 <code>options</code> 陣列中的其中一個字串。<code>imgurl</code> 為選填欄位。</p>
                                 <pre><code>[
   {
     "text": "哪座行星是太陽系中最大的？",
+    "imgurl": "",
     "options": [
       "地球",
       "火星",
@@ -1519,15 +1537,16 @@ window.addEventListener('DOMContentLoaded', () => {
     "explanation": "木星是氣態巨行星，其質量是太陽系其他所有行星總和的兩倍多。"
   },
   {
-    "text": "光速大約是多少公里/秒？",
+    "text": "請問這張圖片中的生物是什麼？",
+    "imgurl": "images/animal.jpg",
     "options": [
-      "150,000",
-      "300,000",
-      "450,000",
-      "600,000"
+      "貓",
+      "狗",
+      "兔子",
+      "倉鼠"
     ],
-    "answer": "300,000",
-    "explanation": "在真空中，光速約為每秒 299,792 公里，通常簡化為 300,000 公里/秒。"
+    "answer": "貓",
+    "explanation": "這是一隻家貓。"
   }
 ]</code></pre>
                             </div>
