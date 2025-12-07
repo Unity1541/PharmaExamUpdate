@@ -20,7 +20,10 @@
   --correct-color-light: #e8f5e9;
   --incorrect-color: #f44336;
   --incorrect-color-light: #ffebee;
-
+  --status-current: #2196F3;
+  --status-answered: #4caf50;
+  --status-bookmarked: #FFC107;
+  --status-unanswered: #e0e0e0;
 }
 
 * {
@@ -842,6 +845,7 @@ body {
 .admin-list-item .actions {
     display: flex;
     gap: 8px;
+    flex-shrink: 0;
 }
 
 .action-btn {
@@ -1125,6 +1129,10 @@ body {
 .form-group .filter-select {
     width: 100%;
 }
+/* Helper for spacing in form option inputs */
+.mt-1 {
+    margin-top: 4px;
+}
 
 .submit-button {
     width: 100%;
@@ -1276,91 +1284,143 @@ body {
     height: 14px;
 }
 
-/* Exam Taking View */
-.exam-view-container {
-    width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
+/* --- NEW EXAM TAKING VIEW STYLES --- */
+.exam-layout {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-.exam-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    background-color: var(--card-bg);
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-}
-.exam-header h3 {
-    font-size: 18px;
-}
-.exam-meta {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-light);
-}
-.exam-timer {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--danger-color-dark);
-    font-weight: 700;
-}
-.exam-timer svg {
-    width: 18px;
-    height: 18px;
-}
-
-.exam-progress-bar-container {
-    width: 100%;
-    height: 6px;
-    background-color: var(--border-color);
-    border-radius: 3px;
+    gap: 24px;
+    height: calc(100vh - 100px); /* Adjust based on viewport */
     overflow: hidden;
 }
 
-.exam-progress-bar-fill {
-    height: 100%;
-    background-color: var(--accent-color);
-    border-radius: 3px;
-    transition: width 0.3s ease-in-out;
+.exam-main-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 16px;
+    display: flex;
+    flex-direction: column;
 }
+
+.exam-nav-panel {
+    width: 320px;
+    border-left: 1px solid var(--border-color);
+    padding-left: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background-color: var(--bg-color); /* Matches page bg or white */
+}
+
+/* Responsive Exam Layout (Mobile) */
+@media (max-width: 900px) {
+    .exam-layout {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+    }
+    .exam-main-panel {
+        padding-right: 0;
+        overflow-y: visible;
+    }
+    .exam-nav-panel {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+        padding-left: 0;
+        padding-top: 24px;
+        margin-top: 24px;
+    }
+}
+
+/* Progress Bar */
+.exam-progress-wrapper {
+    margin-bottom: 24px;
+}
+.exam-progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+.exam-progress-track {
+    background-color: var(--border-color);
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+.exam-progress-fill {
+    background-color: var(--primary-color);
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+
+/* Question Header */
 .exam-question-card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 32px;
 }
-.exam-question-header {
+.question-header-row {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 32px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
 }
+.question-label {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-color);
+}
+.category-tag {
+    background-color: var(--badge-bg);
+    color: var(--badge-text);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-left: 16px;
+}
+.bookmark-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ccc;
+    transition: all 0.2s;
+    padding: 8px;
+    border-radius: 50%;
+}
+.bookmark-btn:hover {
+    background-color: var(--bg-color);
+}
+.bookmark-btn.active {
+    color: var(--status-bookmarked); /* Yellow */
+}
+.bookmark-btn svg {
+    width: 28px;
+    height: 28px;
+}
+
 .exam-question-text {
     font-size: 18px;
     line-height: 1.7;
-    margin-bottom: 0;
-    flex-grow: 1;
+    margin-bottom: 24px;
+    color: var(--text-color);
 }
 .question-image {
     max-width: 100%;
-    max-height: 300px;
+    max-height: 350px;
     display: block;
-    margin: 16px 0;
+    margin: 16px auto 24px auto;
     border-radius: 8px;
     object-fit: contain;
+    border: 1px solid var(--border-color);
 }
-.bookmark-toggle.bookmarked svg {
-    color: var(--accent-color);
-}
+
 .exam-options-list {
     list-style: none;
     display: flex;
@@ -1375,21 +1435,22 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+    transition: all 0.2s;
+    background-color: var(--card-bg);
 }
 .exam-option:hover {
-    border-color: var(--accent-color);
-    background-color: var(--accent-color-light);
+    border-color: var(--primary-color);
+    background-color: var(--bg-color);
 }
 .exam-option.selected {
-    border-color: var(--accent-color);
+    border-color: var(--primary-color);
     background-color: var(--accent-color-light);
-    box-shadow: 0 0 0 2px var(--accent-color);
+    box-shadow: 0 0 0 2px var(--primary-color);
 }
 .option-letter {
     flex-shrink: 0;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     border: 1px solid var(--border-color);
     display: flex;
@@ -1398,39 +1459,117 @@ body {
     font-weight: 700;
     font-size: 14px;
     background-color: var(--bg-color);
-    transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+    transition: all 0.2s;
 }
 .exam-option.selected .option-letter {
-    background-color: var(--accent-color);
-    border-color: var(--accent-color);
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
     color: white;
 }
-.exam-option p {
-    font-size: 16px;
+/* Option Images */
+.option-image {
+    max-width: 120px;
+    max-height: 100px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    object-fit: contain;
+    display: block;
 }
-.exam-navigation {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 16px;
+
+/* Nav Grid (Right Panel) */
+.nav-panel-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
 }
-.exam-nav-button {
-    padding: 12px 28px;
-    font-size: 16px;
+.nav-panel-header h3 {
+    font-size: 18px;
     font-weight: 700;
+    color: var(--text-color);
+}
+
+.nav-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+}
+.nav-grid-btn {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+.nav-grid-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Status Colors */
+.nav-grid-btn.current {
+    background-color: var(--status-current) !important;
+    color: white !important;
+    border-color: var(--status-current) !important;
+    box-shadow: 0 4px 6px rgba(33, 150, 243, 0.3);
+}
+.nav-grid-btn.answered {
+    background-color: var(--status-answered);
+    color: white;
+    border-color: var(--status-answered);
+}
+.nav-grid-btn.bookmarked {
+    background-color: var(--status-bookmarked);
+    color: #333;
+    border-color: var(--status-bookmarked);
+}
+.nav-grid-btn.unanswered {
+    background-color: var(--status-unanswered);
+    color: var(--text-light);
+}
+
+.status-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: auto; /* Push to bottom if space permits */
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-light);
+    font-weight: 500;
+}
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.exam-nav-button {
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     cursor: pointer;
-    background-color: var(--card-bg);
-    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-}
-.exam-nav-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-.exam-nav-button:not(:disabled):hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color-dark);
+    background-color: white;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 .exam-nav-button.next {
     background-color: var(--primary-color);
@@ -1439,18 +1578,30 @@ body {
 }
 .exam-nav-button.next:hover {
     background-color: var(--primary-color-dark);
-    border-color: var(--primary-color-dark);
-    color: white;
 }
 .exam-nav-button.finish {
-    background-color: var(--danger-color);
+    background-color: var(--primary-color); /* Per prompt description, "Submit Exam" is usually primary, but logic might say danger/success. Sticking to primary or dedicated color */
     color: white;
-    border-color: var(--danger-color);
+    border-color: var(--primary-color);
+    font-size: 18px;
+    padding: 16px;
 }
-.exam-nav-button.finish:hover {
-    background-color: var(--danger-color-dark);
-    border-color: var(--danger-color-dark);
-    color: white;
+.exam-nav-button.finish:disabled {
+    background-color: var(--border-color);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.exam-nav-button.finish:not(:disabled):hover {
+    background-color: var(--primary-color-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.exam-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
 }
 
 /* Exam Review Modal */
