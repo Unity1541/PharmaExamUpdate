@@ -16,6 +16,8 @@ Firestore 安全性規則可以讓您精確控制對資料庫中每個文件和�
 -   `questions/{questionId}`：儲存題目資訊（建議包含 `subject` 和 `category` 欄位以便查詢）。
 -   `examHistory/{historyId}`：儲存學生的測驗記錄（必須包含 `userId` 欄位）。
 -   `bookmarkedQuestions/{bookmarkId}`：儲存學生標記的題目（必須包含 `userId` 和 `questionId` 欄位）。
+-   `assignments/{assignmentId}`：儲存手寫/申論作業題目（公開讀取，僅管理員寫入）。
+-   `assignmentSubmissions/{submissionId}`：儲存學生的作業作答（學生讀寫自己的，管理員讀寫所有的）。
 
 ## 安全性規則內容
 
@@ -67,24 +69,46 @@ service cloud.firestore {
     // ===== Subjects, Categories, Questions Collections =====
     // 考試內容相關資料
     match /subjects/{subjectId} {
-      // 所有登入的使用者都可以讀取科目
       allow read: if isSignedIn();
-      // 只有管理員可以新增、修改、刪除科目
       allow write: if isAdmin();
     }
 
     match /categories/{categoryId} {
-      // 所有登入的使用者都可以讀取類別
       allow read: if isSignedIn();
-      // 只有管理員可以新增、修改、刪除類別
       allow write: if isAdmin();
     }
 
     match /questions/{questionId} {
-      // 所有登入的使用者都可以讀取題目
       allow read: if isSignedIn();
-      // 只有管理員可以新增、修改、刪除題目
       allow write: if isAdmin();
+    }
+    
+    // ===== Assignments (Handwritten/Essay) =====
+    // 手寫作業題目
+    match /assignments/{assignmentId} {
+      // 所有登入者皆可讀取作業題目
+      allow read: if isSignedIn();
+      // 僅管理員可新增/修改/刪除作業
+      allow write: if isAdmin();
+    }
+    
+    // 手寫作業作答
+    match /assignmentSubmissions/{submissionId} {
+      // 學生只能讀取自己的作答，管理員可讀取所有
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // 學生可以建立自己的作答
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      // 更新規則：
+      // 1. 學生可以更新自己的作答 (例如：儲存草稿、提交)，但不能更改別人的，也不能更改評分欄位(如果有的話，需在前端/後端邏輯控制，這裡做基本權限)
+      // 2. 管理員可以更新任何作答 (例如：評分、回饋)
+      allow update: if isSignedIn() && (
+        (resource.data.userId == request.auth.uid) || isAdmin()
+      );
+      
+      // 僅管理員可刪除 (或學生刪除草稿，視需求而定，此處從嚴)
+      allow delete: if isAdmin();
     }
 
     // ===== Student-Specific Data =====
@@ -92,52 +116,18 @@ service cloud.firestore {
     
     // 測驗歷史
     match /examHistory/{historyId} {
-      // 學生只能讀取自己的歷史紀錄，管理員可以讀取所有人的
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      // 學生只能為自己建立新的歷史紀錄
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      // 學生不能修改或刪除歷史紀錄，只有管理員可以
       allow update, delete: if isAdmin();
     }
     
     // 標記的題目
     match /bookmarkedQuestions/{bookmarkId} {
-      // 學生只能讀取自己標記的題目，管理員可以讀取所有人的
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      // 學生只能為自己建立標記
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      // 學生可以刪除自己的標記，管理員也可以刪除任何人的標記
       allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      // 不允許更新標記
       allow update: if false;
     }
   }
 }
 ```
-
-## 規則詳解
-
--   **`isAdmin()` 輔助函式**: 這是一個自訂函式，用來檢查發出請求的使用者是否在其 `users` 文件中擁有 `role: 'admin'` 的身份。這讓規則更容易閱讀和管理。
--   **`users` 集合**:
-    -   `create`: **（已修正）** 允許使用者建立自己的帳號文件。關鍵的檢查是 `request.auth.token.email`，確保只有 `admin@test.com` 能將角色設為 `'admin'`，從而解決了權限的循環依賴問題。
-    -   `read`: 允許使用者讀取自己的資料，而管理員可以讀取所有使用者的資料。
-    -   `update`: 允許使用者更新自己的資料，但有一個重要的限制：`request.resource.data.role == resource.data.role`，這可以防止學生自行將自己的角色修改為 `admin`。管理員則不受此限。
-    -   `delete`: 只有管理員有權刪除帳號。
--   **`subjects`, `categories`, `questions` 集合**:
-    -   `read`: 任何登入的使用者（學生或管理員）都可以讀取這些公開的考試資料。
-    -   `write`: 只有管理員可以建立、修改或刪除這些核心的考試內容。
--   **`examHistory` 集合**:
-    -   `read`, `create`: 嚴格限制學生只能存取和建立自己的測驗記錄 (`userId` 必須符合自己的 `uid`)。
-    -   `update`, `delete`: 完全禁止學生修改或刪除已存在的測驗記錄，以確保成績的公正性。只有管理員可以操作。
--   **`bookmarkedQuestions` 集合**:
-    -   與測驗歷史類似，學生只能管理自己的書籤。
-    -   `delete`: 允許學生刪除自己的書籤，這是合理的操作。
-
-## 如何部署
-
-1.  前往您的 [Firebase Console](https://console.firebase.google.com/)。
-2.  選擇您的專案。
-3.  在左側導覽列中，點擊 **建構 > Firestore Database**。
-4.  點擊頂部的 **規則** 頁籤。
-5.  將上述規則內容貼到編輯器中。
-6.  點擊 **發布** 按鈕。

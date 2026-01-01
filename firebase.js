@@ -1,3 +1,4 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -22,6 +23,7 @@ import {
   query,
   where,
   writeBatch,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 
 // --- IMPORTANT: FIREBASE CONFIGURATION ---
@@ -73,4 +75,5 @@ export {
   query,
   where,
   writeBatch,
+  onSnapshot,
 };
