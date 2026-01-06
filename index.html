@@ -1,38 +1,177 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html class="light" lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>線上考試系統</title>
-    <link rel="stylesheet" href="index.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-<script type="importmap">
-{
-  "imports": {
-    "path": "https://aistudiocdn.com/path@^0.12.7",
-    "vite": "https://aistudiocdn.com/vite@^7.2.6",
-    "url": "https://aistudiocdn.com/url@^0.11.4",
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
-</head>
-<body>
-    <div id="root">
-        <div id="loading-indicator" style="display: none;"></div>
-        <div id="login-container"></div>
-        <div id="app-container" class="app-container" style="display: none;">
-            <nav id="sidebar-container" class="sidebar"></nav>
-            <main id="main-content-container" class="main-content"></main>
-        </div>
-        <div id="modal-container"></div>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              cream: "#fffcf7",
+              "cream-dark": "#f0e6da",
+              peach: "#ffaa8e",
+              "peach-hover": "#e67a5b",
+              coffee: "#5c4b43",
+              "coffee-light": "#8d7a71",
+              "soft-white": "#ffffff",
+              sage: "#b5d6b0",
+              "sage-dark": "#88a684",
+              sky: "#b8dbe8",
+              lavender: "#d8c2e6",
+              sun: "#ffd978",
+            },
+            fontFamily: {
+              display: ["Quicksand", "sans-serif"],
+              sans: ["Quicksand", "sans-serif"],
+            },
+            borderRadius: {
+              xl: "1rem",
+              "2xl": "1.5rem",
+              "3xl": "2rem",
+              "4xl": "2.5rem",
+            },
+            boxShadow: {
+              soft: "0 8px 30px rgba(92, 75, 67, 0.05)",
+              card: "0 4px 20px rgba(92, 75, 67, 0.04)",
+              float: "0 10px 40px -10px rgba(92, 75, 67, 0.1)",
+              "inner-soft": "inset 0 2px 4px 0 rgba(92, 75, 67, 0.03)",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Quicksand", sans-serif;
+        background-color: #fff9f2;
+        background-image: radial-gradient(#f3e6d8 1px, transparent 1px);
+        background-size: 24px 24px;
+      }
+      .timer-circle {
+        background: conic-gradient(var(--tw-gradient-stops));
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #f0e6da;
+        border-radius: 20px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background-color: #ffaa8e;
+      }
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+      }
+    </style>
+    <link rel="stylesheet" href="/index.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "path": "https://aistudiocdn.com/path@^0.12.7",
+          "vite": "https://aistudiocdn.com/vite@^7.2.6",
+          "url": "https://aistudiocdn.com/url@^0.11.4",
+          "react": "https://aistudiocdn.com/react@^19.2.1",
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+          "react/": "https://aistudiocdn.com/react@^19.2.1/"
+        }
+      }
+    </script>
+  </head>
+  <body
+    class="text-coffee h-screen flex overflow-hidden selection:bg-peach/20 selection:text-coffee"
+  >
+    <div id="root" class="w-full h-full">
+      <div
+        id="loading-indicator"
+        class="fixed top-0 left-0 w-full h-full bg-white/70 flex items-center justify-center z-9999"
+        style="display: none"
+      >
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-4 border-cream-dark border-t-peach"
+        ></div>
+      </div>
+      <div id="login-container"></div>
+      <div id="app-container" class="flex w-full h-full" style="display: none">
+        <aside
+          class="w-72 h-full glass-panel flex flex-col p-6 z-20 hidden md:flex shrink-0 shadow-soft border-r border-white"
+        >
+          <div id="sidebar-container"></div>
+        </aside>
+        <main class="flex-1 flex flex-col h-full relative overflow-hidden">
+          <header
+            class="w-full px-8 py-5 flex items-center justify-between z-10 bg-white/40 backdrop-blur"
+          >
+            <div>
+              <div class="flex items-center gap-2">
+                <span
+                  class="material-symbols-outlined text-sun filled text-3xl animate-pulse"
+                  >sunny</span
+                >
+                <h2 class="text-3xl font-bold text-coffee">早上好，同學！</h2>
+              </div>
+              <p class="text-coffee-light font-medium text-sm mt-1 ml-10">
+                準備好今天的考試挑戰了嗎？
+              </p>
+            </div>
+            <div class="flex items-center gap-4">
+              <div
+                class="bg-white/80 backdrop-blur px-5 py-2.5 rounded-2xl shadow-sm text-coffee font-bold text-xl border border-white flex items-center gap-2"
+              >
+                <span
+                  class="material-symbols-outlined text-coffee-light text-lg"
+                  >schedule</span
+                >
+                <span id="current-time">09:41 AM</span>
+              </div>
+              <button
+                class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-coffee-light hover:text-peach transition-colors border border-white relative group"
+              >
+                <span
+                  class="absolute top-3 right-3 w-2 h-2 bg-red-400 rounded-full"
+                ></span>
+                <span
+                  class="material-symbols-outlined group-hover:animate-bounce"
+                  >notifications</span
+                >
+              </button>
+            </div>
+          </header>
+          <div
+            class="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-8 pb-8"
+            id="main-content-container"
+          ></div>
+        </main>
+      </div>
+      <div id="modal-container"></div>
     </div>
     <script type="module" src="/index.js"></script>
-<script type="module" src="/index.tsx"></script>
-</body>
+    <script type="module" src="/index.tsx"></script>
+  </body>
 </html>

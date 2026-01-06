@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cute Exam Dashboard</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "cream": "#fffcf7",
+                        "cream-dark": "#f0e6da",
+                        "peach": "#ffaa8e",
+                        "peach-hover": "#e67a5b",
+                        "coffee": "#5c4b43",
+                        "coffee-light": "#8d7a71",
+                        "soft-white": "#ffffff",
+                        "sage": "#b5d6b0",
+                        "sage-dark": "#88a684",
+                        "sky": "#b8dbe8",
+                        "lavender": "#d8c2e6",
+                        "sun": "#ffd978",
+                    },
+                    fontFamily: {
+                        "display": ["Quicksand", "sans-serif"],
+                        "sans": ["Quicksand", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "xl": "1rem",
+                        "2xl": "1.5rem",
+                        "3xl": "2rem",
+                        "4xl": "2.5rem",
+                    },
+                    boxShadow: {
+                        "soft": "0 8px 30px rgba(92, 75, 67, 0.05)",
+                        "card": "0 4px 20px rgba(92, 75, 67, 0.04)",
+                        "float": "0 10px 40px -10px rgba(92, 75, 67, 0.1)",
+                        "inner-soft": "inset 0 2px 4px 0 rgba(92, 75, 67, 0.03)"
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fff9f2;
+            background-image: radial-gradient(#f3e6d8 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .timer-circle {
+            background: conic-gradient(var(--tw-gradient-stops));
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #f0e6da;
+            border-radius: 20px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #ffaa8e;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body class="text-coffee h-screen flex overflow-hidden selection:bg-peach/20 selection:text-coffee">
+<aside class="w-72 h-full glass-panel flex flex-col p-6 z-20 hidden md:flex shrink-0 shadow-soft border-r border-white">
+<div class="flex items-center gap-3 mb-10 px-2">
+<div class="w-10 h-10 rounded-xl bg-sage text-white flex items-center justify-center shadow-sm rotate-3 transform">
+<span class="material-symbols-outlined font-bold">school</span>
+</div>
+<h1 class="text-xl font-bold text-coffee tracking-tight">ExamPilot <span class="text-peach">2.0</span></h1>
+</div>
+<nav class="space-y-3 flex-1">
+<a class="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-peach/10 text-peach font-bold transition-all shadow-sm" href="#">
+<span class="material-symbols-outlined filled">dashboard</span>
+            Dashboard
+        </a>
+<a class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-coffee-light hover:bg-white hover:text-coffee hover:shadow-sm transition-all font-semibold" href="#">
+<span class="material-symbols-outlined">quiz</span>
+            Select Exam
+        </a>
+<a class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-coffee-light hover:bg-white hover:text-coffee hover:shadow-sm transition-all font-semibold" href="#">
+<span class="material-symbols-outlined">edit_square</span>
+            Assignments
+        </a>
+<a class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-coffee-light hover:bg-white hover:text-coffee hover:shadow-sm transition-all font-semibold" href="#">
+<span class="material-symbols-outlined">history_edu</span>
+            History
+        </a>
+</nav>
+<div class="mt-auto">
+<div class="bg-gradient-to-br from-cream to-white p-5 rounded-3xl border border-white shadow-sm text-center relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-20 h-20 bg-sun/20 rounded-full -mr-10 -mt-10 group-hover:scale-110 transition-transform duration-500"></div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-14 h-14 rounded-full border-4 border-white shadow-md overflow-hidden mb-3">
+<img class="w-full h-full object-cover" data-alt="Cute student character" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDR9YWmB_0AHsLC8py6siKkgLBijEQYZcYKqGerKSZ2Vr0UrbhF58jMaRxnNlyye4rj08bb_ZtsRkHmmPi0BpRRSDdzND8uY4gSQsrbr5KZOg97tHqfrqlwJ5EJY-SWM_bGBivsnTh8TXqiyatYNWK7vVMR1JWlWBDyNmpbb8mqOJiqRTRMxVpR6eqCLkRVowWz6ACezMmFyIx7gzMQA6_mfpApSShnkJn3ayAMtt5LTs80B0cd5uWeUJFEJIzKNCx93E88F1TrJ9qs"/>
+</div>
+<p class="font-bold text-coffee">Student User</p>
+<p class="text-xs text-coffee-light mt-1">Class 3-A</p>
+<button class="mt-3 px-4 py-1.5 bg-coffee text-white text-xs font-bold rounded-lg hover:bg-peach transition-colors">View Profile</button>
+</div>
+</div>
+<button class="mt-4 flex items-center gap-3 px-4 py-3 w-full text-coffee-light hover:text-red-400 transition-colors text-sm font-bold justify-center">
+<span class="material-symbols-outlined">logout</span>
+            Sign Out
+        </button>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-full relative overflow-hidden">
+<header class="w-full px-8 py-5 flex items-center justify-between z-10">
+<div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sun filled text-3xl animate-pulse">sunny</span>
+<h2 class="text-3xl font-bold text-coffee">Good Morning, Student!</h2>
+</div>
+<p class="text-coffee-light font-medium text-sm mt-1 ml-10">Ready to ace your tests today?</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="bg-white/80 backdrop-blur px-5 py-2.5 rounded-2xl shadow-sm text-coffee font-bold text-xl border border-white flex items-center gap-2">
+<span class="material-symbols-outlined text-coffee-light text-lg">schedule</span>
+                09:41 AM
+            </div>
+<button class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-coffee-light hover:text-peach transition-colors border border-white relative group">
+<span class="absolute top-3 right-3 w-2 h-2 bg-red-400 rounded-full"></span>
+<span class="material-symbols-outlined group-hover:animate-bounce">notifications</span>
+</button>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-8 pb-8">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+<div class="bg-white p-5 rounded-[2rem] shadow-card hover:shadow-float transition-all duration-300 border border-white relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-20 h-20 bg-sage/10 rounded-full group-hover:scale-125 transition-transform"></div>
+<div class="flex items-start justify-between mb-4">
+<p class="text-sm font-bold text-coffee-light">Tests Taken</p>
+<div class="w-10 h-10 rounded-full bg-sage/20 text-sage-dark flex items-center justify-center">
+<span class="material-symbols-outlined">assignment_turned_in</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2">
+<p class="text-4xl font-bold text-coffee">12</p>
+<p class="text-xs font-bold text-sage-dark bg-sage/20 px-2 py-0.5 rounded-lg">+2 this week</p>
+</div>
+<p class="text-xs text-coffee-light mt-2">Total Completed</p>
+</div>
+<div class="bg-white p-5 rounded-[2rem] shadow-card hover:shadow-float transition-all duration-300 border border-white relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-20 h-20 bg-sky/10 rounded-full group-hover:scale-125 transition-transform"></div>
+<div class="flex items-start justify-between mb-4">
+<p class="text-sm font-bold text-coffee-light">Avg. Score</p>
+<div class="w-10 h-10 rounded-full bg-sky/20 text-sky-700 flex items-center justify-center">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2">
+<p class="text-4xl font-bold text-coffee">85</p>
+<p class="text-xs font-bold text-sky-700 bg-sky/20 px-2 py-0.5 rounded-lg">Top 10%</p>
+</div>
+<div class="w-full bg-cream-dark rounded-full h-1.5 mt-3">
+<div class="bg-sky h-1.5 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<div class="bg-white p-5 rounded-[2rem] shadow-card hover:shadow-float transition-all duration-300 border border-white relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-20 h-20 bg-peach/10 rounded-full group-hover:scale-125 transition-transform"></div>
+<div class="flex items-start justify-between mb-4">
+<p class="text-sm font-bold text-coffee-light">Study Time</p>
+<div class="w-10 h-10 rounded-full bg-peach/20 text-peach flex items-center justify-center">
+<span class="material-symbols-outlined">hourglass_top</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2">
+<p class="text-4xl font-bold text-coffee">3.5<span class="text-lg">h</span></p>
+</div>
+<p class="text-xs text-coffee-light mt-2">Today's Focus</p>
+</div>
+<div class="bg-white p-5 rounded-[2rem] shadow-card hover:shadow-float transition-all duration-300 border border-white relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-20 h-20 bg-lavender/20 rounded-full group-hover:scale-125 transition-transform"></div>
+<div class="flex items-start justify-between mb-4">
+<p class="text-sm font-bold text-coffee-light">Saved Qs</p>
+<div class="w-10 h-10 rounded-full bg-lavender/40 text-purple-600 flex items-center justify-center">
+<span class="material-symbols-outlined">bookmark</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2">
+<p class="text-4xl font-bold text-coffee">8</p>
+</div>
+<p class="text-xs text-coffee-light mt-2">Questions to review</p>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+<div class="lg:col-span-5 flex flex-col gap-6">
+<div class="bg-white rounded-[2.5rem] shadow-card p-6 border border-white relative overflow-hidden">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-sky/20 text-sky-600 flex items-center justify-center">
+<span class="material-symbols-outlined">bar_chart</span>
+</div>
+<h3 class="text-lg font-bold text-coffee">Ability Analysis</h3>
+</div>
+<button class="text-xs font-bold text-coffee-light bg-cream hover:bg-cream-dark px-3 py-1.5 rounded-lg transition-colors">Details</button>
+</div>
+<div class="relative w-full aspect-square max-h-[250px] mx-auto flex items-center justify-center">
+<svg class="w-full h-full p-4" viewBox="0 0 200 200">
+<circle cx="100" cy="100" fill="none" r="80" stroke="#f0e6da" stroke-width="1"></circle>
+<circle cx="100" cy="100" fill="none" r="50" stroke="#f0e6da" stroke-width="1"></circle>
+<circle cx="100" cy="100" fill="none" r="20" stroke="#f0e6da" stroke-width="1"></circle>
+<polygon fill="rgba(162, 197, 214, 0.2)" points="100,20 170,70 160,150 40,150 30,70" stroke="#a2c5d6" stroke-width="2"></polygon>
+<text fill="#8d7a71" font-size="10" font-weight="bold" text-anchor="middle" x="100" y="15">Math</text>
+<text fill="#8d7a71" font-size="10" font-weight="bold" text-anchor="middle" x="180" y="70">Science</text>
+<text fill="#8d7a71" font-size="10" font-weight="bold" text-anchor="middle" x="170" y="165">History</text>
+<text fill="#8d7a71" font-size="10" font-weight="bold" text-anchor="middle" x="30" y="165">English</text>
+<text fill="#8d7a71" font-size="10" font-weight="bold" text-anchor="middle" x="20" y="70">Arts</text>
+</svg>
+</div>
+<div class="text-center mt-2">
+<p class="text-sm font-bold text-sky-700">Strongest in Math!</p>
+<p class="text-xs text-coffee-light">Keep practicing English to balance your skills.</p>
+</div>
+</div>
+<div class="bg-white rounded-[2.5rem] shadow-card p-6 relative overflow-hidden border border-white flex flex-col items-center">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-peach via-pink-300 to-peach"></div>
+<div class="flex items-center gap-2 mb-4 w-full px-2">
+<span class="material-symbols-outlined text-peach filled">timer</span>
+<h3 class="font-bold text-coffee">Focus Timer</h3>
+<div class="ml-auto flex bg-cream rounded-xl p-1">
+<button class="px-3 py-1 rounded-lg text-xs font-bold bg-white shadow-sm text-peach">Focus</button>
+<button class="px-3 py-1 rounded-lg text-xs font-bold text-coffee-light hover:text-coffee">Break</button>
+</div>
+</div>
+<div class="relative w-48 h-48 flex items-center justify-center mb-6 z-10">
+<svg class="absolute inset-0 w-full h-full rotate-[-90deg]" viewBox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="#f7f0e8" stroke-width="8"></circle>
+<circle cx="50" cy="50" fill="none" r="45" stroke="#ffaa8e" stroke-dasharray="283" stroke-dashoffset="50" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="text-center z-10">
+<div class="text-4xl font-bold text-coffee tracking-tight">25:00</div>
+</div>
+</div>
+<div class="flex gap-3 w-full">
+<button class="flex-1 py-3 bg-peach hover:bg-peach-hover text-white rounded-xl text-sm font-bold shadow-lg shadow-peach/30 transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined filled text-lg">play_arrow</span>
+                            Start
+                        </button>
+<button class="w-12 h-11 rounded-xl border-2 border-cream-dark hover:border-peach text-coffee-light hover:text-peach flex items-center justify-center transition-all bg-white">
+<span class="material-symbols-outlined">restart_alt</span>
+</button>
+</div>
+<div class="absolute -bottom-2 -right-2 w-24 h-24 opacity-80 pointer-events-none">
+<img class="w-full h-full object-contain" data-alt="Cute orange cat" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3gf-4RHDVaPBx0IqrwRDNrY8MoyCr0X0Nf7E960oLggfIE54hjpejVxRpnLDcRyc7yLzafqy-5EZynmQWDO7wlQDj5g4U-1ak8ShfBYsW_yE7GUDs0SZLGJlJZ6Xinm3uZqLn94h6FkOtey7tNA_q0IawqB7oBjJpk3dPaQB075b5PvUp4CxW2LTmU9og6-e7roi-sHhprToB3X9-66yn5JQv24zOyU2TIJxuJJflRRQFulpb8YuBTh9MSC20Delyv8j6zBVboXdi"/>
+</div>
+</div>
+</div>
+<div class="lg:col-span-7 flex flex-col gap-6">
+<div class="bg-white rounded-[2.5rem] shadow-card p-6 border border-white min-h-[200px]">
+<div class="flex items-center justify-between mb-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-sage/20 text-sage-dark flex items-center justify-center">
+<span class="material-symbols-outlined">history</span>
+</div>
+<h3 class="text-lg font-bold text-coffee">Recent Tests</h3>
+</div>
+<button class="w-8 h-8 rounded-full bg-cream hover:bg-sage hover:text-white text-coffee-light flex items-center justify-center transition-all">
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-[#fafdf9] border border-sage/20 hover:border-sage/50 transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-white border border-sage/30 flex flex-col items-center justify-center text-sage-dark font-bold shadow-sm">
+<span class="text-xs">SCORE</span>
+<span class="text-lg leading-none">92</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-coffee group-hover:text-sage-dark transition-colors">Calculus Mid-Term Mock</h4>
+<p class="text-xs text-coffee-light mt-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-[10px]">calendar_today</span> 2023-10-24
+                                     <span class="w-1 h-1 rounded-full bg-coffee-light/40"></span>
+<span>Math</span>
+</p>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-white border border-sage/30 text-xs font-bold text-sage-dark group-hover:bg-sage group-hover:text-white transition-all">Review</button>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-cream border border-cream-dark hover:border-peach/30 transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-white border border-cream-dark flex flex-col items-center justify-center text-peach font-bold shadow-sm">
+<span class="text-xs text-coffee-light">SCORE</span>
+<span class="text-lg leading-none">78</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-coffee group-hover:text-peach transition-colors">Physics Fundamentals</h4>
+<p class="text-xs text-coffee-light mt-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-[10px]">calendar_today</span> 2023-10-22
+                                     <span class="w-1 h-1 rounded-full bg-coffee-light/40"></span>
+<span>Science</span>
+</p>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-white border border-cream-dark text-xs font-bold text-coffee-light group-hover:bg-peach group-hover:text-white group-hover:border-peach transition-all">Review</button>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-[2.5rem] shadow-card p-6 border border-white flex-1 relative overflow-hidden">
+<div class="absolute bottom-0 right-0 w-32 h-32 bg-sky/5 rounded-full -mr-10 -mb-10 pointer-events-none"></div>
+<div class="flex items-center justify-between mb-6 relative z-10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-sun/20 text-orange-500 flex items-center justify-center">
+<span class="material-symbols-outlined">checklist</span>
+</div>
+<div>
+<h3 class="text-lg font-bold text-coffee">Study Tasks</h3>
+<div class="flex gap-2 text-xs font-semibold mt-1">
+<span class="text-coffee-light">Total: 4</span>
+<span class="text-sage-dark">Done: 1</span>
+</div>
+</div>
+</div>
+<button class="flex items-center gap-2 px-3 py-2 rounded-xl bg-cream hover:bg-peach text-coffee-light hover:text-white text-xs font-bold transition-all shadow-sm">
+<span class="material-symbols-outlined text-sm">add</span> New Task
+                        </button>
+</div>
+<div class="relative group mb-5 z-10">
+<input class="w-full bg-[#fcfcfc] border border-cream-dark focus:border-peach/50 focus:ring-4 focus:ring-peach/10 text-coffee placeholder-coffee-light/60 font-medium rounded-2xl py-3.5 pl-4 pr-12 outline-none transition-all shadow-inner-soft" placeholder="Add a new study goal..." type="text"/>
+<button class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white text-peach rounded-xl shadow-sm border border-cream-dark hover:bg-peach hover:text-white hover:border-peach transition-all flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">arrow_upward</span>
+</button>
+</div>
+<div class="space-y-3 overflow-y-auto max-h-[250px] pr-2 custom-scrollbar z-10 relative">
+<div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-cream-dark hover:border-peach/50 hover:shadow-soft transition-all group">
+<label class="cursor-pointer relative">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-6 h-6 rounded-lg border-2 border-cream-dark bg-white peer-checked:bg-sage peer-checked:border-sage transition-all flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-sm opacity-0 peer-checked:opacity-100">check</span>
+</div>
+</label>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold text-coffee truncate">Review Math Chapter 5</p>
+<p class="text-xs text-coffee-light truncate">Formulas &amp; derivatives</p>
+</div>
+<button class="w-8 h-8 rounded-xl bg-peach/10 text-peach hover:bg-peach hover:text-white flex items-center justify-center transition-colors" title="Start Timer for this task">
+<span class="material-symbols-outlined text-lg filled">play_arrow</span>
+</button>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-cream-dark hover:border-peach/50 hover:shadow-soft transition-all group">
+<label class="cursor-pointer relative">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-6 h-6 rounded-lg border-2 border-cream-dark bg-white peer-checked:bg-sage peer-checked:border-sage transition-all flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-sm opacity-0 peer-checked:opacity-100">check</span>
+</div>
+</label>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold text-coffee truncate">English Vocabulary Quiz</p>
+<p class="text-xs text-coffee-light truncate">Unit 3 words</p>
+</div>
+<button class="w-8 h-8 rounded-xl bg-cream text-coffee-light hover:bg-peach hover:text-white flex items-center justify-center transition-colors" title="Start Timer for this task">
+<span class="material-symbols-outlined text-lg">play_arrow</span>
+</button>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-cream-dark hover:border-peach/50 hover:shadow-soft transition-all group">
+<label class="cursor-pointer relative">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-6 h-6 rounded-lg border-2 border-cream-dark bg-white peer-checked:bg-sage peer-checked:border-sage transition-all flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-sm opacity-0 peer-checked:opacity-100">check</span>
+</div>
+</label>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold text-coffee truncate">History Essay Draft</p>
+<p class="text-xs text-coffee-light truncate">The Renaissance period</p>
+</div>
+<button class="w-8 h-8 rounded-xl bg-cream text-coffee-light hover:bg-peach hover:text-white flex items-center justify-center transition-colors" title="Start Timer for this task">
+<span class="material-symbols-outlined text-lg">play_arrow</span>
+</button>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-2xl bg-cream/30 opacity-70 hover:opacity-100 transition-all group">
+<div class="w-6 h-6 rounded-lg bg-sage border-2 border-sage text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold text-coffee line-through decoration-coffee-light/50">Biology Notes</p>
+<p class="text-xs text-coffee-light truncate">Cell structure</p>
+</div>
+<span class="text-[10px] font-bold text-sage bg-sage/10 px-2 py-1 rounded-lg border border-sage/20">Done</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur border-t border-cream-dark p-2 flex justify-around items-center z-50 pb-safe shadow-[0_-5px_10px_rgba(0,0,0,0.02)]">
+<a class="p-2 text-peach flex flex-col items-center gap-1" href="#">
+<span class="material-symbols-outlined filled">dashboard</span>
+<span class="text-[10px] font-bold">Home</span>
+</a>
+<a class="p-2 text-coffee-light hover:text-coffee flex flex-col items-center gap-1" href="#">
+<span class="material-symbols-outlined">quiz</span>
+<span class="text-[10px] font-bold">Exam</span>
+</a>
+<a class="p-2 text-coffee-light hover:text-coffee flex flex-col items-center gap-1" href="#">
+<span class="material-symbols-outlined">checklist</span>
+<span class="text-[10px] font-bold">Tasks</span>
+</a>
+<a class="p-2 text-coffee-light hover:text-coffee flex flex-col items-center gap-1" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">Profile</span>
+</a>
+</div>
+
+</body></html>
