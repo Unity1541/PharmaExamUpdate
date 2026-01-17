@@ -2341,3 +2341,31 @@ body {
     font-size: 1.25rem;
   }
 }
+
+/* Radar Chart Styles */
+.radar-chart-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+.radar-grid-line {
+    fill: none;
+    stroke: #e2e8f0; /* slate-200 */
+    stroke-width: 1;
+}
+
+.radar-shape {
+    fill: rgba(255, 170, 142, 0.4); /* peach/40 */
+    stroke: #ffaa8e; /* peach */
+    stroke-width: 2;
+}
+
+.radar-label {
+    font-size: 12px;
+    fill: #5c4b43; /* coffee */
+    text-anchor: middle;
+    dominant-baseline: middle;
+    font-weight: 600;
+}

@@ -57,6 +57,9 @@ window.addEventListener("DOMContentLoaded", () => {
     assignmentSubmissions: [], // Submissions loaded for admin
     submissionDraft: null, // Current draft for student
     gradingSubmission: null, // The submission being graded by admin
+    // Bulletin Board State
+    announcements: [],
+    editingAnnouncement: null,
   };
 
   let examHistoryListener = null; // Listener for logged-in student
@@ -166,6 +169,7 @@ window.addEventListener("DOMContentLoaded", () => {
     history: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-11.664 0l4.992-4.993m-4.993 0l-3.181 3.183a8.25 8.25 0 000 11.664l3.181 3.183" /></svg>`,
     check: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>`,
     pencil: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>`,
+    campaign: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 018.835 2.535M10.34 6.66a23.847 23.847 0 018.835-2.535m0 0A23.74 23.74 0 0018.795 3m.38 1.125a23.91 23.91 0 011.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 001.014-5.395m0-3.46c.495.43.811 1.035.811 1.73 0 .695-.316 1.3-.811 1.73m0-3.46a24.347 24.347 0 010 3.46" /></svg>`,
   };
 
   // --- FIREBASE AUTHENTICATION & DATA HANDLERS ---
@@ -798,6 +802,64 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // --- BULLETIN BOARD FUNCTIONS ---
+  async function handleAddAnnouncement(e) {
+    e.preventDefault();
+    setLoading(true);
+    const form = e.target;
+    
+    // Check if we are editing or creating
+    const isEditing = !!state.editingAnnouncement;
+    
+    const data = {
+        title: form.title.value.trim(),
+        content: form.content.value.trim(),
+        isBold: form.isBold.checked,
+        color: form.color.value,
+        updatedAt: new Date().toISOString(),
+    };
+    
+    if (!data.title || !data.content) {
+        alert("請輸入標題和內容");
+        setLoading(false);
+        return;
+    }
+    
+    try {
+        if (isEditing) {
+            await updateDoc(doc(db, "announcements", state.editingAnnouncement.id), data);
+            alert("公告已更新");
+        } else {
+            data.createdAt = new Date().toISOString();
+            data.authorId = state.currentUser.id;
+            data.authorName = state.currentUser.name;
+            await addDoc(collection(db, "announcements"), data);
+            alert("公告已發佈");
+        }
+        
+        setState({ editingAnnouncement: null });
+        window.closeBulletinModal();
+    } catch (error) {
+        console.error("Error saving announcement:", error);
+        alert("儲存失敗: " + error.message);
+    } finally {
+        setLoading(false);
+    }
+  }
+
+  async function handleDeleteAnnouncement(id) {
+    if(!confirm("確定要刪除此公告？")) return;
+    setLoading(true);
+    try {
+        await deleteDoc(doc(db, "announcements", id));
+    } catch(e) {
+        console.error(e);
+        alert("刪除失敗");
+    } finally {
+        setLoading(false);
+    }
+  }
+
   async function handleAdminGradeSubmission(e) {
     e.preventDefault();
     setLoading(true);
@@ -1048,6 +1110,13 @@ window.addEventListener("DOMContentLoaded", () => {
             } transition-all font-semibold">
                 <span class="material-symbols-outlined">edit_square</span>手寫作業
             </a>
+            <a href="#" id="nav-bulletin-board" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl ${
+              state.currentView === "bulletin-board"
+                ? "bg-peach/10 text-peach font-bold shadow-sm"
+                : "text-coffee-light hover:bg-white hover:text-coffee hover:shadow-sm"
+            } transition-all font-semibold">
+                <span class="material-symbols-outlined">campaign</span>公告欄
+            </a>
         `
         : `
             <a href="#" id="nav-user-management" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl ${
@@ -1092,6 +1161,13 @@ window.addEventListener("DOMContentLoaded", () => {
                 : "text-coffee-light hover:bg-white hover:text-coffee hover:shadow-sm"
             } transition-all font-semibold">
                 <span class="material-symbols-outlined">assignment_turned_in</span>作業管理
+            </a>
+            <a href="#" id="nav-bulletin-board-admin" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl ${
+              state.currentView === "bulletin-board"
+                ? "bg-peach/10 text-peach font-bold shadow-sm"
+                : "text-coffee-light hover:bg-white hover:text-coffee hover:shadow-sm"
+            } transition-all font-semibold">
+                <span class="material-symbols-outlined">campaign</span>公告管理
             </a>
         `;
 
@@ -1424,26 +1500,14 @@ window.addEventListener("DOMContentLoaded", () => {
                             <p class="text-xs text-coffee-light text-center mt-4">選擇科目開始測驗吧！</p>
                         </div>
 
-                        <!-- Achievement Card -->
-                        <div class="bg-gradient-to-br from-sun/20 to-peach/10 rounded-[2.5rem] shadow-card p-6 border border-white relative overflow-hidden">
-                            <div class="absolute top-0 right-0 w-20 h-20 bg-sun/20 rounded-full -mr-10 -mt-10"></div>
-                            <div class="flex items-center gap-3 mb-4 relative z-10">
-                                <span class="material-symbols-outlined text-sun filled text-2xl">stars</span>
-                                <h3 class="text-lg font-bold text-coffee">成就</h3>
+                        <!-- Radar Chart Card -->
+                        <div class="bg-white rounded-[2.5rem] shadow-card p-6 border border-white relative overflow-hidden">
+                             <div class="flex items-center gap-3 mb-4">
+                                <span class="material-symbols-outlined text-peach filled text-2xl">radar</span>
+                                <h3 class="text-lg font-bold text-coffee">能力分析</h3>
                             </div>
-                            <div class="space-y-3 relative z-10">
-                                <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-sky filled">check_circle</span>
-                                    <span class="text-sm font-semibold text-coffee">${
-                                      examCount > 0 ? "測驗達人" : "新手上路"
-                                    }</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-sage filled">check_circle</span>
-                                    <span class="text-sm font-semibold text-coffee">${
-                                      avgScore >= 80 ? "優秀表現" : "持續進步"
-                                    }</span>
-                                </div>
+                            <div class="flex justify-center">
+                                ${createRadarChartView(user.radarChartData || calculateRadarData(user.examHistory))}
                             </div>
                         </div>
                     </div>
@@ -2602,6 +2666,81 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     return "";
   }
+  
+  // --- Bulletin Board Views ---
+  function createBulletinBoardViewHTML() {
+    const isAdmin = state.currentUser.role === "admin";
+    const announcements = state.announcements || [];
+    
+    // Sort by date desc
+    const sorted = [...announcements].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    const items = sorted.map(a => {
+        const style = `
+            ${a.isBold ? 'font-weight: bold;' : ''}
+            ${a.color ? `color: ${a.color};` : ''}
+        `;
+        
+        return `
+        <div class="bg-white p-6 rounded-[2rem] shadow-card border border-white relative group transition-all hover:shadow-float mb-6">
+            ${isAdmin ? `
+            <div class="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button class="w-8 h-8 rounded-full bg-cream hover:bg-sage hover:text-white text-coffee-light flex items-center justify-center transition-all" 
+                    onclick="window.openEditAnnouncementModal('${a.id}')">
+                    ${icons.edit}
+                </button>
+                <button class="w-8 h-8 rounded-full bg-cream hover:bg-red-100 hover:text-red-500 text-coffee-light flex items-center justify-center transition-all" 
+                    onclick="window.handleDeleteAnnouncement('${a.id}')">
+                    ${icons.delete}
+                </button>
+            </div>
+            ` : ''}
+            
+            <div class="flex items-center gap-3 mb-4">
+               <div class="w-10 h-10 rounded-xl bg-peach/20 text-peach flex items-center justify-center">
+                    ${icons.campaign}
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-coffee" style="${style}">${a.title}</h3>
+                    <p class="text-xs text-coffee-light">${new Date(a.createdAt).toLocaleDateString()} ${a.authorName ? `by ${a.authorName}` : ''}</p>
+                </div>
+            </div>
+            
+            <div class="pl-[52px]">
+                <p class="text-coffee leading-relaxed whitespace-pre-wrap" style="${style}">${a.content}</p>
+            </div>
+        </div>
+        `;
+    }).join("");
+
+    return `
+        <div class="w-full max-w-4xl mx-auto">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-coffee">公告欄</h2>
+                    <p class="text-coffee-light">最新的消息與通知</p>
+                </div>
+                ${isAdmin ? `
+                <button onclick="window.openAddAnnouncementModal()" class="px-6 py-3 bg-peach hover:bg-peach-hover text-white rounded-xl font-bold shadow-lg shadow-peach/30 transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined">add</span>
+                    新增公告
+                </button>
+                ` : ''}
+            </div>
+            
+            <div class="space-y-6">
+                ${items.length > 0 ? items : `
+                <div class="text-center py-12 bg-white rounded-[2.5rem] shadow-sm border border-white/50">
+                    <div class="w-16 h-16 bg-cream rounded-full flex items-center justify-center mx-auto mb-4 text-coffee-light">
+                        <span class="material-symbols-outlined text-3xl">notifications_off</span>
+                    </div>
+                    <p class="text-coffee-light font-bold">目前沒有任何公告</p>
+                </div>
+                `}
+            </div>
+        </div>
+    `;
+  }
 
   // --- HELPER FUNCTIONS FOR MOBILE MENU ---
   function attachSidebarListeners(container) {
@@ -2632,6 +2771,14 @@ window.addEventListener("DOMContentLoaded", () => {
           e.preventDefault();
           closeMobileMenu();
           setState({ currentView: "handwritten-assignments" });
+        };
+      }
+      const navBulletinBoard = container.querySelector("#nav-bulletin-board");
+      if (navBulletinBoard) {
+        navBulletinBoard.onclick = (e) => {
+            e.preventDefault();
+            closeMobileMenu();
+            setState({ currentView: "bulletin-board" });
         };
       }
     } else {
@@ -2686,6 +2833,14 @@ window.addEventListener("DOMContentLoaded", () => {
           e.preventDefault();
           closeMobileMenu();
           setState({ currentView: "admin-assignments" });
+        };
+      }
+      const navBulletinBoardAdmin = container.querySelector("#nav-bulletin-board-admin");
+      if (navBulletinBoardAdmin) {
+        navBulletinBoardAdmin.onclick = (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          setState({ currentView: "bulletin-board" });
         };
       }
     }
@@ -2855,8 +3010,74 @@ window.addEventListener("DOMContentLoaded", () => {
                         </div>
                     </div>
                 </div>`;
+    } else if (state.editingAnnouncement || state.addingAnnouncement) {
+        const a = state.editingAnnouncement || { title: "", content: "", isBold: false, color: "#5c4b43" }; // Default coffee color
+        const isEdit = !!state.editingAnnouncement;
+        
+        modalHTML = `
+            <div class="modal-backdrop">
+                 <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>${isEdit ? "編輯公告" : "新增公告"}</h3>
+                        <button class="modal-close-btn" onclick="window.closeBulletinModal()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="bulletin-form" class="admin-form">
+                            <div class="form-group">
+                                <label>標題</label>
+                                <input type="text" name="title" value="${a.title}" required placeholder="請輸入標題">
+                            </div>
+                            <div class="form-group">
+                                <label>內容</label>
+                                <textarea name="content" rows="5" required placeholder="請輸入公告內容...">${a.content}</textarea>
+                            </div>
+                            
+                            <div class="flex gap-6 mb-6">
+                                <div class="flex items-center gap-2">
+                                    <label class="font-bold text-coffee text-sm cursor-pointer select-none flex items-center gap-2">
+                                        <input type="checkbox" name="isBold" class="w-5 h-5 rounded text-peach focus:ring-peach" ${a.isBold ? "checked" : ""}>
+                                        粗體顯示
+                                    </label>
+                                </div>
+                                <div class="flex-1">
+                                    <label class="block font-bold text-coffee text-sm mb-2">字體顏色</label>
+                                    <div class="flex gap-2">
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="color" value="#5c4b43" class="peer sr-only" ${!a.color || a.color === '#5c4b43' ? 'checked' : ''}>
+                                            <div class="w-8 h-8 rounded-full bg-[#5c4b43] ring-2 ring-offset-2 ring-transparent peer-checked:ring-[#5c4b43] transition-all"></div>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="color" value="#ef4444" class="peer sr-only" ${a.color === '#ef4444' ? 'checked' : ''}>
+                                            <div class="w-8 h-8 rounded-full bg-red-500 ring-2 ring-offset-2 ring-transparent peer-checked:ring-red-500 transition-all"></div>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="color" value="#3b82f6" class="peer sr-only" ${a.color === '#3b82f6' ? 'checked' : ''}>
+                                            <div class="w-8 h-8 rounded-full bg-blue-500 ring-2 ring-offset-2 ring-transparent peer-checked:ring-blue-500 transition-all"></div>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="color" value="#22c55e" class="peer sr-only" ${a.color === '#22c55e' ? 'checked' : ''}>
+                                            <div class="w-8 h-8 rounded-full bg-green-500 ring-2 ring-offset-2 ring-transparent peer-checked:ring-green-500 transition-all"></div>
+                                        </label>
+                                         <label class="cursor-pointer">
+                                            <input type="radio" name="color" value="#e67a5b" class="peer sr-only" ${a.color === '#e67a5b' ? 'checked' : ''}>
+                                            <div class="w-8 h-8 rounded-full bg-[#e67a5b] ring-2 ring-offset-2 ring-transparent peer-checked:ring-[#e67a5b] transition-all"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="submit-button">${isEdit ? "儲存更新" : "發佈公告"}</button>
+                        </form>
+                    </div>
+                 </div>
+            </div>
+        `;
     }
     modalContainer.innerHTML = modalHTML;
+    
+    // Bind Bulletin Form
+    const bulletinForm = document.getElementById("bulletin-form");
+    if (bulletinForm) bulletinForm.onsubmit = handleAddAnnouncement;
 
     // Login View
     if (!state.isLoggedIn) {
@@ -2964,6 +3185,10 @@ window.addEventListener("DOMContentLoaded", () => {
       } else {
         contentHTML = createAdminViewHTML();
       }
+    }
+    
+    if (state.currentView === "bulletin-board") {
+        contentHTML = createBulletinBoardViewHTML();
     }
 
     // ** FIX: Preserve scroll position across renders **
@@ -3494,6 +3719,12 @@ window.addEventListener("DOMContentLoaded", () => {
             ...d.data(),
           }));
 
+          // Fetch Announcements
+           onSnapshot(collection(db, "announcements"), (snapshot) => {
+            const announcements = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+            setState({ announcements });
+          });
+
           // 3. Admin Specifics
           let allStudents = [];
           if (role === "admin") {
@@ -3626,6 +3857,14 @@ window.addEventListener("DOMContentLoaded", () => {
       )}:${minutes} ${ampm}`;
     }
   }, 1000);
+
+  window.openEditAnnouncementModal = (id) => {
+      const a = state.announcements.find(item => item.id === id);
+      if (a) setState({ editingAnnouncement: a, addingAnnouncement: false });
+  };
+  window.openAddAnnouncementModal = () => setState({ addingAnnouncement: true, editingAnnouncement: null });
+  window.closeBulletinModal = () => setState({ addingAnnouncement: false, editingAnnouncement: null });
+  window.handleDeleteAnnouncement = handleDeleteAnnouncement;
 
   render();
 });
