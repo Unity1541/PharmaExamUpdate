@@ -2603,6 +2603,113 @@ window.addEventListener("DOMContentLoaded", () => {
     return "";
   }
 
+  // --- HELPER FUNCTIONS FOR MOBILE MENU ---
+  function attachSidebarListeners(container) {
+    if (state.currentUser.role === "student") {
+      const navDashboard = container.querySelector("#nav-dashboard");
+      const navExamSelection = container.querySelector("#nav-exam-selection");
+      const navHandwritten = container.querySelector("#nav-handwritten");
+
+      if (navDashboard) {
+        navDashboard.onclick = (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          setState({ currentView: "dashboard" });
+        };
+      }
+      if (navExamSelection) {
+        navExamSelection.onclick = (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          setState({
+            currentView: "exam-selection",
+            selectedExamSubject: null,
+          });
+        };
+      }
+      if (navHandwritten) {
+        navHandwritten.onclick = (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          setState({ currentView: "handwritten-assignments" });
+        };
+      }
+    } else {
+      const navUserMgmt = container.querySelector("#nav-user-management");
+      const navSubjectMgmt = container.querySelector("#nav-subject-management");
+      const navQuestionEdit = container.querySelector("#nav-question-editing");
+      const navBulkUpload = container.querySelector("#nav-bulk-upload");
+      const navStudentAnalytics = container.querySelector(
+        "#nav-student-analytics"
+      );
+      const navAdminAssignments = container.querySelector(
+        "#nav-admin-assignments"
+      );
+
+      if (navUserMgmt) {
+        navUserMgmt.onclick = (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          setState({ currentView: "user-management" });
+        };
+      }
+      if (navSubjectMgmt) {
+        navSubjectMgmt.onclick = (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          setState({ currentView: "subject-management" });
+        };
+      }
+      if (navQuestionEdit) {
+        navQuestionEdit.onclick = (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          setState({ currentView: "question-editing" });
+        };
+      }
+      if (navBulkUpload) {
+        navBulkUpload.onclick = (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          setState({ currentView: "bulk-upload" });
+        };
+      }
+      if (navStudentAnalytics) {
+        navStudentAnalytics.onclick = (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          setState({ currentView: "student-analytics" });
+        };
+      }
+      if (navAdminAssignments) {
+        navAdminAssignments.onclick = (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          setState({ currentView: "admin-assignments" });
+        };
+      }
+    }
+
+    // Logout button
+    const logoutBtn = container.querySelector("#logout-btn");
+    if (logoutBtn) {
+      logoutBtn.onclick = (e) => {
+        e.preventDefault();
+        closeMobileMenu();
+        handleLogout();
+      };
+    }
+  }
+
+  function closeMobileMenu() {
+    const mobileSidebarOverlay = document.getElementById(
+      "mobile-sidebar-overlay"
+    );
+    if (mobileSidebarOverlay) {
+      mobileSidebarOverlay.classList.add("hidden");
+    }
+  }
+
   // --- MAIN RENDER FUNCTION ---
   function render() {
     const appContainer = document.getElementById("app-container");
@@ -2773,47 +2880,43 @@ window.addEventListener("DOMContentLoaded", () => {
 
     sidebarContainer.innerHTML = createSidebarHTML();
 
-    // Attach sidebar listeners
-    if (state.currentUser.role === "student") {
-      document.getElementById("nav-dashboard").onclick = (e) => {
-        e.preventDefault();
-        setState({ currentView: "dashboard" });
+    // Mobile menu functionality
+    const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+    const mobileMenuClose = document.getElementById("mobile-menu-close");
+    const mobileSidebarOverlay = document.getElementById(
+      "mobile-sidebar-overlay"
+    );
+    const mobileSidebarContent = document.getElementById(
+      "mobile-sidebar-content"
+    );
+
+    if (mobileMenuBtn && mobileSidebarOverlay && mobileSidebarContent) {
+      // Copy sidebar content to mobile sidebar
+      mobileSidebarContent.innerHTML = createSidebarHTML();
+
+      // Mobile menu open
+      mobileMenuBtn.onclick = () => {
+        mobileSidebarOverlay.classList.remove("hidden");
       };
-      document.getElementById("nav-exam-selection").onclick = (e) => {
-        e.preventDefault();
-        setState({ currentView: "exam-selection", selectedExamSubject: null });
+
+      // Mobile menu close
+      mobileMenuClose.onclick = () => {
+        mobileSidebarOverlay.classList.add("hidden");
       };
-      document.getElementById("nav-handwritten").onclick = (e) => {
-        e.preventDefault();
-        setState({ currentView: "handwritten-assignments" });
+
+      // Close on overlay click
+      mobileSidebarOverlay.onclick = (e) => {
+        if (e.target === mobileSidebarOverlay) {
+          mobileSidebarOverlay.classList.add("hidden");
+        }
       };
-    } else {
-      document.getElementById("nav-user-management").onclick = (e) => {
-        e.preventDefault();
-        setState({ currentView: "user-management" });
-      };
-      document.getElementById("nav-subject-management").onclick = (e) => {
-        e.preventDefault();
-        setState({ currentView: "subject-management" });
-      };
-      document.getElementById("nav-question-editing").onclick = (e) => {
-        e.preventDefault();
-        setState({ currentView: "question-editing" });
-      };
-      document.getElementById("nav-bulk-upload").onclick = (e) => {
-        e.preventDefault();
-        setState({ currentView: "bulk-upload" });
-      };
-      document.getElementById("nav-student-analytics").onclick = (e) => {
-        e.preventDefault();
-        setState({ currentView: "student-analytics" });
-      };
-      document.getElementById("nav-admin-assignments").onclick = (e) => {
-        e.preventDefault();
-        setState({ currentView: "admin-assignments" });
-      };
+
+      // Attach mobile sidebar listeners (same as desktop)
+      attachSidebarListeners(mobileSidebarContent);
     }
-    document.getElementById("logout-btn").onclick = handleLogout;
+
+    // Attach desktop sidebar listeners
+    attachSidebarListeners(sidebarContainer);
 
     // Content Area Rendering
     let contentHTML = "";
