@@ -3073,6 +3073,12 @@ window.addEventListener("DOMContentLoaded", () => {
       };
     });
 
+    // Header Logout Button
+    const headerLogoutBtn = document.getElementById("header-logout-btn");
+    if (headerLogoutBtn) {
+      headerLogoutBtn.onclick = handleLogout;
+    }
+
     // Editor listeners (for multiple editors now)
     const editors = document.querySelectorAll(".editor-area");
     editors.forEach((editor) => {
