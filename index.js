@@ -60,6 +60,8 @@ window.addEventListener("DOMContentLoaded", () => {
     // Bulletin Board State
     announcements: [],
     editingAnnouncement: null,
+    // Bookmark Filter State
+    selectedBookmarkFilterSubject: null,
   };
 
   let examHistoryListener = null; // Listener for logged-in student
@@ -1374,8 +1376,20 @@ window.addEventListener("DOMContentLoaded", () => {
           .join("")
       : "";
 
-    const bookmarkItems = user.bookmarkedQuestions
-      ? user.bookmarkedQuestions
+    // Get unique subjects from bookmarked questions for filter dropdown
+    const bookmarkSubjects = user.bookmarkedQuestions
+      ? [...new Set(user.bookmarkedQuestions.map(b => b.subject))].sort()
+      : [];
+
+    // Filter bookmarked questions based on selected subject
+    const filteredBookmarks = user.bookmarkedQuestions
+      ? user.bookmarkedQuestions.filter(b => {
+          if (!state.selectedBookmarkFilterSubject) return true;
+          return b.subject === state.selectedBookmarkFilterSubject;
+        })
+      : [];
+
+    const bookmarkItems = filteredBookmarks
           .map(
             (b) => `
             <div class="flex items-start gap-3 p-3 rounded-2xl bg-white border border-cream-dark hover:border-peach/50 hover:shadow-soft transition-all group clickable-bookmark cursor-pointer" onclick="window.openBookmarkDetail('${
@@ -1401,8 +1415,18 @@ window.addEventListener("DOMContentLoaded", () => {
             </div>
         `
           )
-          .join("")
-      : "";
+          .join("");
+
+    // Bookmark filter dropdown HTML
+    const bookmarkFilterDropdown = bookmarkSubjects.length > 0 ? `
+        <select class="px-3 py-1.5 rounded-xl border border-cream-dark bg-white text-sm text-coffee font-medium focus:outline-none focus:border-peach transition-all" onchange="window.handleBookmarkFilterChange(this.value)">
+            <option value="">全部科目 (${user.bookmarkedQuestions ? user.bookmarkedQuestions.length : 0})</option>
+            ${bookmarkSubjects.map(s => {
+              const count = user.bookmarkedQuestions.filter(b => b.subject === s).length;
+              return `<option value="${s}" ${state.selectedBookmarkFilterSubject === s ? 'selected' : ''}>${s} (${count})</option>`;
+            }).join('')}
+        </select>
+    ` : '';
 
     return `
             <div class="w-full">
@@ -1544,6 +1568,7 @@ window.addEventListener("DOMContentLoaded", () => {
                                     </div>
                                     <h3 class="text-lg font-bold text-coffee">收藏題目</h3>
                                 </div>
+                                ${bookmarkFilterDropdown}
                             </div>
                             <div class="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
                                 ${
@@ -3527,6 +3552,8 @@ window.addEventListener("DOMContentLoaded", () => {
     setState({ selectedAdminSubject: val });
   window.handleAdminCategoryFilterChange = (val) =>
     setState({ selectedAdminCategory: val });
+  window.handleBookmarkFilterChange = (val) =>
+    setState({ selectedBookmarkFilterSubject: val || null });
   window.handleDeleteQuestion = handleDeleteQuestion;
   window.openEditQuestionModal = (id) => {
     const q = state.allQuestions.find((i) => i.id === id);
