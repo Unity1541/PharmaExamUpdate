@@ -317,17 +317,37 @@ body {
   box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.1);
 }
 
-/* Fix for browser autofill/autocomplete white background */
+/* Fix for browser autofill/autocomplete white background - ENHANCED for mobile */
 .luxury-input:-webkit-autofill,
 .luxury-input:-webkit-autofill:hover,
 .luxury-input:-webkit-autofill:focus,
 .luxury-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px rgba(30, 30, 30, 0.95) inset !important;
-  box-shadow: 0 0 0 1000px rgba(30, 30, 30, 0.95) inset !important;
+  -webkit-box-shadow: 0 0 0 9999px #1e1e1e inset !important;
+  box-shadow: 0 0 0 9999px #1e1e1e inset !important;
   -webkit-text-fill-color: #ffffff !important;
+  color: #ffffff !important;
   caret-color: #ffffff !important;
   border-color: var(--luxury-gold) !important;
-  transition: background-color 5000s ease-in-out 0s;
+  background-color: #1e1e1e !important;
+  background-clip: content-box !important;
+  -webkit-background-clip: text !important;
+  transition: background-color 9999s ease-in-out 0s, 
+              color 9999s ease-in-out 0s,
+              -webkit-text-fill-color 9999s ease-in-out 0s !important;
+}
+
+/* Additional state combinations for mobile */
+.luxury-input:-webkit-autofill::first-line {
+  color: #ffffff !important;
+  font-family: "Montserrat", sans-serif !important;
+  font-size: 15px !important;
+}
+
+/* Input that has lost focus but was autofilled */
+.luxury-input:not(:focus):-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 9999px #1e1e1e inset !important;
+  box-shadow: 0 0 0 9999px #1e1e1e inset !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
 /* Submit Button - Gold Gradient */
@@ -2971,22 +2991,23 @@ body {
 .luxury-input:-webkit-autofill:active,
 .luxury-input:-internal-autofill-selected,
 .luxury-input:-internal-autofill-previewed {
-    -webkit-box-shadow: 0 0 0 1000px rgba(30, 30, 30, 0.95) inset !important;
-    box-shadow: 0 0 0 1000px rgba(30, 30, 30, 0.95) inset !important;
+    -webkit-box-shadow: 0 0 0 9999px #1e1e1e inset !important;
+    box-shadow: 0 0 0 9999px #1e1e1e inset !important;
     -webkit-text-fill-color: #ffffff !important;
     color: #ffffff !important;
     caret-color: #ffffff !important;
     border-color: var(--luxury-gold) !important;
-    background-color: rgba(30, 30, 30, 0.95) !important;
-    transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
+    background-color: #1e1e1e !important;
+    transition: background-color 9999s ease-in-out 0s, color 9999s ease-in-out 0s !important;
 }
 
 /* Firefox autofill fix */
 .luxury-input:autofill {
-    -webkit-box-shadow: 0 0 0 1000px rgba(30, 30, 30, 0.95) inset !important;
-    box-shadow: 0 0 0 1000px rgba(30, 30, 30, 0.95) inset !important;
+    -webkit-box-shadow: 0 0 0 9999px #1e1e1e inset !important;
+    box-shadow: 0 0 0 9999px #1e1e1e inset !important;
     -webkit-text-fill-color: #ffffff !important;
     color: #ffffff !important;
+    background-color: #1e1e1e !important;
 }
 
 /* Mobile Responsive Breakpoints */
@@ -3030,10 +3051,11 @@ body {
     }
     
     .page-header h2 {
-        font-size: 20px;
-        line-height: 1.3;
-        word-break: keep-all;
-        white-space: nowrap;
+        font-size: 18px;
+        line-height: 1.4;
+        word-break: break-word;
+        white-space: normal;
+        overflow-wrap: break-word;
     }
     
     /* Main content mobile padding */
@@ -3074,9 +3096,12 @@ body {
     }
     
     .exam-layout .page-header h2 {
-        font-size: 18px;
+        font-size: 16px;
+        line-height: 1.3;
         white-space: normal;
         word-break: break-word;
+        overflow-wrap: break-word;
+        max-width: calc(100vw - 120px);
     }
     
     .exam-layout .page-header p {
