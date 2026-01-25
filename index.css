@@ -2867,3 +2867,95 @@ body {
         transform: scale(1);
     }
 }
+
+/* ============================================
+   JSON FORMAT EXAMPLE STYLES
+   ============================================ */
+
+/* Container for format examples */
+.format-examples-container {
+    margin-top: 24px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.format-examples-container h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.format-example-content {
+    position: relative;
+}
+
+.format-example-content pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 20px;
+    border-radius: 12px;
+    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+}
+
+/* Selection styles for code blocks */
+.format-example-content pre::selection,
+.format-example-content pre *::selection {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+}
+
+.format-example-content pre::-moz-selection,
+.format-example-content pre *::-moz-selection {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+}
+
+/* Copy button styles */
+.copy-json-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(59, 130, 246, 0.9);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.copy-json-btn:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.copy-json-btn:active {
+    transform: translateY(0);
+}
+
+.copy-json-btn.copied {
+    background: #10b981;
+}
+
+.copy-json-btn .material-symbols-outlined {
+    font-size: 18px;
+}

@@ -2353,13 +2353,16 @@ window.addEventListener("DOMContentLoaded", () => {
                         </div>
                         
                         <div class="format-examples-container">
-                            <h4>JSON 格式範例</h4>
+                            <h4><span class="material-symbols-outlined">code</span> JSON 格式範例</h4>
                             <div class="format-example-content">
-<pre>
-[
+                                <button class="copy-json-btn" id="copy-json-btn" onclick="window.handleCopyJsonTemplate()">
+                                    <span class="material-symbols-outlined">content_copy</span>
+                                    一鍵複製
+                                </button>
+<pre id="json-template-code">[
   {
     "text": "題目敘述 (必填)",
-    "imgurl": "/images/question.jpg (選填，圖片路徑)", 
+    "imgurl": "/images/question.jpg",
     "options": [
       "選項A (必填)", 
       "選項B (必填)", 
@@ -2367,19 +2370,19 @@ window.addEventListener("DOMContentLoaded", () => {
       "選項D (必填)"
     ],
     "optionImages": [
-      "/images/optA.jpg (選填，對應選項A)", 
+      "/images/optA.jpg", 
       null, 
       null, 
       "/images/optD.jpg"
     ],
     "answer": "選項A (必須完全符合選項文字)",
     "explanation": "詳解 (選填)",
-    "explanationImage": "/images/explanation.jpg (選填，詳解圖片)"
+    "explanationImage": "/images/explanation.jpg"
   }
-]
-</pre>
+]</pre>
                             </div>
                         </div>
+
                     </div>
                 </div>
              `;
@@ -3774,6 +3777,54 @@ window.addEventListener("DOMContentLoaded", () => {
             editor.innerHTML += html;
           }
         }
+      }
+    }
+  };
+
+  // Copy JSON template to clipboard
+  window.handleCopyJsonTemplate = async () => {
+    const jsonTemplate = `[
+  {
+    "text": "題目敘述",
+    "imgurl": "/images/question.jpg",
+    "options": ["選項A", "選項B", "選項C", "選項D"],
+    "optionImages": ["/images/optA.jpg", null, null, null],
+    "answer": "選項A",
+    "explanation": "詳解",
+    "explanationImage": "/images/explanation.jpg"
+  }
+]`;
+    
+    try {
+      await navigator.clipboard.writeText(jsonTemplate);
+      const btn = document.getElementById('copy-json-btn');
+      if (btn) {
+        btn.classList.add('copied');
+        btn.innerHTML = '<span class="material-symbols-outlined">check</span> 已複製';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = '<span class="material-symbols-outlined">content_copy</span> 一鍵複製';
+        }, 2000);
+      }
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = jsonTemplate;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-9999px';
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      const btn = document.getElementById('copy-json-btn');
+      if (btn) {
+        btn.classList.add('copied');
+        btn.innerHTML = '<span class="material-symbols-outlined">check</span> 已複製';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = '<span class="material-symbols-outlined">content_copy</span> 一鍵複製';
+        }, 2000);
       }
     }
   };
