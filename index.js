@@ -1205,95 +1205,97 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // --- Login View ---
   function createLoginViewHTML() {
-    // Luxury liquid glass login page
-    // Right corner: Admin login button only
-    // Center: User login form with premium styling
+    // Education Style Login Page
+    // Right corner: Admin login button
+    // Center: User login form with clean styling
     
     const isAdminMode = state.loginAsRole === "admin";
-    const headerText = isAdminMode ? "管理員登入" : "線上考試系統";
-    const subText = isAdminMode ? "ADMINISTRATOR ACCESS" : "ONLINE EXAMINATION PLATFORM";
-    const buttonText = isAdminMode ? "管理員登入" : "開始登入";
+    
+    // Toggle Button Logic
+    const toggleBtnHTML = !isAdminMode ? `
+        <button class="edu-admin-btn" id="admin-login-toggle">
+            <span class="material-symbols-outlined">admin_panel_settings</span>
+            管理員登入
+        </button>
+    ` : `
+        <button class="edu-admin-btn" id="user-login-toggle" style="color: #64748b; border-color: #cbd5e1;">
+            <span class="material-symbols-outlined">arrow_back</span>
+            返回使用者
+        </button>
+    `;
 
-    return `
-        <!-- Luxury Grid Overlay -->
-        <div class="luxury-grid-overlay"></div>
-        
-        <!-- Admin Login Button - Right Corner -->
-        ${!isAdminMode ? `
-        <nav class="luxury-navbar">
-            <button class="luxury-admin-btn" id="admin-login-toggle">
-                <span class="material-symbols-outlined">admin_panel_settings</span>
-                管理員入口
-            </button>
-        </nav>
-        ` : `
-        <div class="luxury-admin-mode">
-            <span class="material-symbols-outlined" style="font-size: 14px;">shield</span>
+    // Card Content
+    const headerTitle = isAdminMode ? "管理員後台" : "ExamPilot 線上考試";
+    const headerDesc = isAdminMode ? "請輸入管理員憑證" : "開啟您的學習旅程";
+    const btnText = isAdminMode ? "進入管理系統" : "開始學習";
+    const icon = isAdminMode ? "shield" : "school";
+    
+    // Admin Badge
+    const adminBadge = isAdminMode ? `
+        <div class="edu-admin-mode-badge">
+            <span class="material-symbols-outlined" style="font-size: 16px;">verified_user</span>
             管理員模式
         </div>
-        <nav class="luxury-navbar">
-            <button class="luxury-admin-btn" id="user-login-toggle">
-                <span class="material-symbols-outlined">person</span>
-                返回使用者登入
-            </button>
+    ` : "";
+
+    return `
+        <!-- Top Right Navbar for Admin Toggle -->
+        <nav class="edu-navbar">
+            ${toggleBtnHTML}
         </nav>
-        `}
         
-        <!-- Main Login Card - Liquid Glass -->
-        <div class="luxury-login-card">
-            <!-- Brand Section -->
-            <div class="luxury-brand">
-                <div class="luxury-brand-icon">
-                    <span class="material-symbols-outlined">${isAdminMode ? 'shield' : 'school'}</span>
+        <!-- Main Login Card -->
+        <div class="edu-login-card">
+            ${adminBadge}
+        
+            <div class="edu-brand">
+                <div class="edu-icon-container">
+                    <span class="material-symbols-outlined" style="font-size: 32px;">${icon}</span>
                 </div>
-                <h1>${headerText}</h1>
-                <p>${subText}</p>
+                <h1>${headerTitle}</h1>
+                <p>${headerDesc}</p>
             </div>
             
-            <!-- Login Form -->
             <form id="login-form">
-                <div class="luxury-form-group">
-                    <label class="luxury-label">電子郵件</label>
+                <div class="edu-form-group">
+                    <label class="edu-label">電子郵件</label>
                     <input 
                         type="email" 
                         id="email" 
                         name="email" 
-                        class="luxury-input"
-                        placeholder="請輸入您的電子郵件" 
+                        class="edu-input"
+                        placeholder="name@example.com" 
                         required 
                         autocomplete="email"
                     >
                 </div>
                 
-                <div class="luxury-form-group">
-                    <label class="luxury-label">密碼</label>
+                <div class="edu-form-group">
+                    <label class="edu-label">密碼</label>
                     <input 
                         type="password" 
                         id="password" 
                         name="password" 
-                        class="luxury-input"
-                        placeholder="請輸入您的密碼" 
+                        class="edu-input"
+                        placeholder="請輸入密碼" 
                         required 
                         autocomplete="current-password"
                     >
                 </div>
                 
-                <div class="luxury-error">${state.loginError}</div>
+                <div class="edu-error">${state.loginError}</div>
                 
-                <button type="submit" class="luxury-submit-btn">
-                    ${buttonText}
+                <button type="submit" class="edu-submit-btn">
+                    ${btnText}
                 </button>
             </form>
             
-            <!-- Footer -->
-            <div class="luxury-footer">
-                <p>
-                    <span class="material-symbols-outlined">verified_user</span>
-                    安全加密連線 · 資料受到保護
-                </p>
+            <div class="edu-footer">
+                <span class="material-symbols-outlined" style="font-size: 14px; color: #0ea5e9;">check_circle</span>
+                <span>系統安全加密連線</span>
             </div>
         </div>
-        `;
+    `;
   }
 
   // --- Dashboard View ---
