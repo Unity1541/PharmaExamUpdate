@@ -303,7 +303,7 @@ body {
   font-size: 15px;
   font-weight: 400;
   color: #ffffff;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
 }
 
 .luxury-input::placeholder {
@@ -345,26 +345,34 @@ body {
 
 /* Main autofill style override */
 .luxury-input:-webkit-autofill,
-.luxury-input:-webkit-autofill:hover,
-.luxury-input:-webkit-autofill:focus,
+.luxury-input:-webkit-autofill:hover, 
+.luxury-input:-webkit-autofill:focus, 
 .luxury-input:-webkit-autofill:active,
 .luxury-input.autofill-detected {
-  /* Use transition hack to delay background color change, preserving the transparent look */
-  transition: background-color 9999s ease-in-out 0s !important;
-  
-  /* Fallback: Force dark background via box-shadow if transition fails */
-  -webkit-box-shadow: 0 0 0 9999px #252525 inset !important;
-  box-shadow: 0 0 0 9999px #252525 inset !important;
-  
-  /* Force text color to be white */
-  -webkit-text-fill-color: #ffffff !important;
-  color: #ffffff !important;
-  caret-color: #ffffff !important;
-  border-color: rgba(202, 138, 4, 0.5) !important;
-  
-  /* Ensure background doesn't override the shadow/transition */
-  background-color: transparent !important;
-  background-image: none !important;
+    /* METHOD 1: Delay the background color transition indefinitely */
+    -webkit-transition-delay: 99999s;
+    transition-delay: 99999s;
+    -webkit-transition-property: background-color, color;
+    transition-property: background-color, color;
+    
+    /* METHOD 2: Overlay a hard shadow to hide the native background if Method 1 fails */
+    /* Using #292524 (Stone-800) which matches the dark glass theme */
+    -webkit-box-shadow: 0 0 0 1000px #292524 inset !important;
+    box-shadow: 0 0 0 1000px #292524 inset !important;
+    
+    /* Ensure text is visible on dark background */
+    -webkit-text-fill-color: #ffffff !important;
+    color: #ffffff !important;
+    caret-color: #ffffff !important;
+    
+    /* Reset other properties that might trigger native styles */
+    background-color: transparent !important;
+    background-image: none !important;
+    background-clip: border-box !important;
+    
+    /* Fix for some mobile browsers */
+    -webkit-appearance: none !important;
+    appearance: none !important;
 }
 
 /* Force text color on filled inputs */
