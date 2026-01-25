@@ -349,15 +349,22 @@ body {
 .luxury-input:-webkit-autofill:focus,
 .luxury-input:-webkit-autofill:active,
 .luxury-input.autofill-detected {
+  /* Use transition hack to delay background color change, preserving the transparent look */
+  transition: background-color 9999s ease-in-out 0s !important;
+  
+  /* Fallback: Force dark background via box-shadow if transition fails */
   -webkit-box-shadow: 0 0 0 9999px #252525 inset !important;
   box-shadow: 0 0 0 9999px #252525 inset !important;
+  
+  /* Force text color to be white */
   -webkit-text-fill-color: #ffffff !important;
   color: #ffffff !important;
   caret-color: #ffffff !important;
   border-color: rgba(202, 138, 4, 0.5) !important;
-  background-color: #252525 !important;
-  background: #252525 !important;
-  transition: none !important;
+  
+  /* Ensure background doesn't override the shadow/transition */
+  background-color: transparent !important;
+  background-image: none !important;
 }
 
 /* Force text color on filled inputs */
@@ -3007,31 +3014,7 @@ input.luxury-input {
    MOBILE RESPONSIVE STYLES
    ============================================ */
 
-/* Enhanced autofill fix for mobile browsers */
-.luxury-input:-webkit-autofill,
-.luxury-input:-webkit-autofill:hover,
-.luxury-input:-webkit-autofill:focus,
-.luxury-input:-webkit-autofill:active,
-.luxury-input:-internal-autofill-selected,
-.luxury-input:-internal-autofill-previewed {
-    -webkit-box-shadow: 0 0 0 9999px #1e1e1e inset !important;
-    box-shadow: 0 0 0 9999px #1e1e1e inset !important;
-    -webkit-text-fill-color: #ffffff !important;
-    color: #ffffff !important;
-    caret-color: #ffffff !important;
-    border-color: var(--luxury-gold) !important;
-    background-color: #1e1e1e !important;
-    transition: background-color 9999s ease-in-out 0s, color 9999s ease-in-out 0s !important;
-}
 
-/* Firefox autofill fix */
-.luxury-input:autofill {
-    -webkit-box-shadow: 0 0 0 9999px #1e1e1e inset !important;
-    box-shadow: 0 0 0 9999px #1e1e1e inset !important;
-    -webkit-text-fill-color: #ffffff !important;
-    color: #ffffff !important;
-    background-color: #1e1e1e !important;
-}
 
 /* Mobile Responsive Breakpoints */
 @media screen and (max-width: 768px) {
@@ -3206,10 +3189,5 @@ input.luxury-input {
 @supports (-webkit-touch-callout: none) {
     .luxury-input {
         font-size: 16px; /* Prevents zoom on iOS */
-    }
-    
-    .luxury-input:-webkit-autofill {
-        -webkit-text-fill-color: #ffffff !important;
-        background-clip: text !important;
     }
 }
