@@ -1205,75 +1205,92 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // --- Login View ---
   function createLoginViewHTML() {
-    const headerText =
-      state.loginAsRole === "student" ? "學生登入" : "管理員登入";
-    const buttonText = state.loginAsRole === "student" ? "登入" : "管理員登入";
+    // Luxury liquid glass login page
+    // Right corner: Admin login button only
+    // Center: User login form with premium styling
+    
+    const isAdminMode = state.loginAsRole === "admin";
+    const headerText = isAdminMode ? "管理員登入" : "線上考試系統";
+    const subText = isAdminMode ? "ADMINISTRATOR ACCESS" : "ONLINE EXAMINATION PLATFORM";
+    const buttonText = isAdminMode ? "管理員登入" : "開始登入";
 
     return `
-        <div class="min-h-screen flex flex-col items-center justify-center p-4">
-            <div class="w-full max-w-md">
-                <!-- Login Card -->
-                <div class="bg-white/85 backdrop-blur rounded-[2.5rem] shadow-card border border-white p-8">
-                    <!-- Header -->
-                    <div class="flex items-center gap-4 mb-8 justify-center">
-                        <div class="w-12 h-12 rounded-xl bg-sage text-white flex items-center justify-center shadow-sm">
-                            <span class="material-symbols-outlined font-bold text-lg">school</span>
-                        </div>
-                        <div>
-                            <h1 class="text-2xl font-bold text-coffee tracking-tight">ExamPilot</h1>
-                            <p class="text-xs text-coffee-light">考試系統</p>
-                        </div>
-                    </div>
-
-                    <!-- Role Selector -->
-                    <div class="flex gap-3 mb-8 bg-cream rounded-2xl p-1">
-                        <button class="role-tab flex-1 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                          state.loginAsRole === "student"
-                            ? "bg-white text-coffee shadow-sm"
-                            : "text-coffee-light hover:text-coffee"
-                        }" data-role="student">
-                            <span class="material-symbols-outlined text-base align-middle inline mr-1">person</span>學生
-                        </button>
-                        <button class="role-tab flex-1 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                          state.loginAsRole === "admin"
-                            ? "bg-white text-coffee shadow-sm"
-                            : "text-coffee-light hover:text-coffee"
-                        }" data-role="admin">
-                            <span class="material-symbols-outlined text-base align-middle inline mr-1">admin_panel_settings</span>管理員
-                        </button>
-                    </div>
-
-                    <!-- Form -->
-                    <form id="login-form" class="space-y-5">
-                        <div>
-                            <label class="block text-sm font-bold text-coffee mb-2">電子郵件</label>
-                            <input type="email" id="email" name="email" placeholder="請輸入電子郵件" required 
-                                class="w-full px-4 py-3 rounded-xl border border-cream-dark bg-white focus:outline-none focus:border-peach focus:ring-4 focus:ring-peach/10 text-coffee placeholder-coffee-light/60 font-medium transition-all shadow-inner-soft">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-coffee mb-2">密碼</label>
-                            <input type="password" id="password" name="password" placeholder="請輸入密碼" required 
-                                class="w-full px-4 py-3 rounded-xl border border-cream-dark bg-white focus:outline-none focus:border-peach focus:ring-4 focus:ring-peach/10 text-coffee placeholder-coffee-light/60 font-medium transition-all shadow-inner-soft">
-                        </div>
-                        
-                        <div class="error-message min-h-6 text-red-500 text-sm font-medium">${
-                          state.loginError
-                        }</div>
-                        
-                        <button type="submit" class="w-full py-3.5 bg-peach hover:bg-peach-hover text-white rounded-xl text-base font-bold shadow-lg shadow-peach/30 transform hover:-translate-y-0.5 transition-all">
-                            <span class="material-symbols-outlined align-middle text-lg inline mr-2">login</span>${buttonText}
-                        </button>
-                    </form>
-
-                    <!-- Footer -->
-                    <p class="text-center text-coffee-light text-xs mt-6">
-                        <span class="material-symbols-outlined text-sm align-middle">lock</span> 登入資訊已加密保護
-                    </p>
+        <!-- Luxury Grid Overlay -->
+        <div class="luxury-grid-overlay"></div>
+        
+        <!-- Admin Login Button - Right Corner -->
+        ${!isAdminMode ? `
+        <nav class="luxury-navbar">
+            <button class="luxury-admin-btn" id="admin-login-toggle">
+                <span class="material-symbols-outlined">admin_panel_settings</span>
+                管理員入口
+            </button>
+        </nav>
+        ` : `
+        <div class="luxury-admin-mode">
+            <span class="material-symbols-outlined" style="font-size: 14px;">shield</span>
+            管理員模式
+        </div>
+        <nav class="luxury-navbar">
+            <button class="luxury-admin-btn" id="user-login-toggle">
+                <span class="material-symbols-outlined">person</span>
+                返回使用者登入
+            </button>
+        </nav>
+        `}
+        
+        <!-- Main Login Card - Liquid Glass -->
+        <div class="luxury-login-card">
+            <!-- Brand Section -->
+            <div class="luxury-brand">
+                <div class="luxury-brand-icon">
+                    <span class="material-symbols-outlined">${isAdminMode ? 'shield' : 'school'}</span>
                 </div>
-
-                <!-- Decoration -->
-                <div class="absolute bottom-0 right-0 w-64 h-64 bg-sage/5 rounded-full -mr-32 -mb-32 pointer-events-none"></div>
-                <div class="absolute top-0 left-0 w-40 h-40 bg-peach/5 rounded-full -ml-20 -mt-20 pointer-events-none"></div>
+                <h1>${headerText}</h1>
+                <p>${subText}</p>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form">
+                <div class="luxury-form-group">
+                    <label class="luxury-label">電子郵件</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="luxury-input"
+                        placeholder="請輸入您的電子郵件" 
+                        required 
+                        autocomplete="email"
+                    >
+                </div>
+                
+                <div class="luxury-form-group">
+                    <label class="luxury-label">密碼</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="luxury-input"
+                        placeholder="請輸入您的密碼" 
+                        required 
+                        autocomplete="current-password"
+                    >
+                </div>
+                
+                <div class="luxury-error">${state.loginError}</div>
+                
+                <button type="submit" class="luxury-submit-btn">
+                    ${buttonText}
+                </button>
+            </form>
+            
+            <!-- Footer -->
+            <div class="luxury-footer">
+                <p>
+                    <span class="material-symbols-outlined">verified_user</span>
+                    安全加密連線 · 資料受到保護
+                </p>
             </div>
         </div>
         `;
@@ -1335,6 +1352,147 @@ window.addEventListener("DOMContentLoaded", () => {
                 </svg>
             </div>
         `;
+  }
+
+  // --- Score Trend Chart ---
+  function createScoreTrendChart(examHistory) {
+    if (!examHistory || examHistory.length === 0) {
+      return `
+        <div class="score-trend-empty">
+          <span class="material-symbols-outlined text-4xl text-coffee-light/40 mb-3">show_chart</span>
+          <p class="text-coffee-light text-sm">尚無考試紀錄</p>
+          <p class="text-xs text-coffee-light/60 mt-1">完成幾次考試後即可查看趨勢圖</p>
+        </div>
+      `;
+    }
+
+    // Sort by date and take last 10 exams
+    const sortedHistory = [...examHistory]
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .slice(-10);
+
+    const width = 500;
+    const height = 200;
+    const padding = { top: 20, right: 30, bottom: 40, left: 40 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    // Calculate scales
+    const xStep = chartWidth / Math.max(sortedHistory.length - 1, 1);
+    const yScale = (score) => chartHeight - (score / 100) * chartHeight;
+
+    // Calculate average
+    const avgScore = Math.round(
+      sortedHistory.reduce((sum, h) => sum + h.score, 0) / sortedHistory.length
+    );
+
+    // Generate path and points
+    let pathD = "";
+    let areaD = "";
+    let pointsHTML = "";
+    
+    sortedHistory.forEach((h, i) => {
+      const x = padding.left + i * xStep;
+      const y = padding.top + yScale(h.score);
+      
+      if (i === 0) {
+        pathD = `M ${x} ${y}`;
+        areaD = `M ${x} ${height - padding.bottom} L ${x} ${y}`;
+      } else {
+        pathD += ` L ${x} ${y}`;
+        areaD += ` L ${x} ${y}`;
+      }
+
+      // Determine color based on score
+      let pointColor = '#a3c1ad'; // sage for good
+      if (h.score < 40) pointColor = '#ffaa8e'; // peach for poor
+      else if (h.score < 70) pointColor = '#ffd978'; // sun for average
+
+      const shortDate = new Date(h.date).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' });
+      
+      pointsHTML += `
+        <g class="trend-point-group" style="--delay: ${i * 0.1}s">
+          <circle cx="${x}" cy="${y}" r="6" fill="${pointColor}" stroke="white" stroke-width="2" class="trend-point"/>
+          <text x="${x}" y="${y - 12}" text-anchor="middle" class="trend-score-label">${h.score}</text>
+          <text x="${x}" y="${height - padding.bottom + 16}" text-anchor="middle" class="trend-date-label">${shortDate}</text>
+        </g>
+      `;
+    });
+
+    // Close area path
+    const lastX = padding.left + (sortedHistory.length - 1) * xStep;
+    areaD += ` L ${lastX} ${height - padding.bottom} Z`;
+
+    // Average line
+    const avgY = padding.top + yScale(avgScore);
+
+    // Y-axis labels
+    const yLabels = [0, 25, 50, 75, 100].map(v => `
+      <text x="${padding.left - 8}" y="${padding.top + yScale(v) + 4}" text-anchor="end" class="trend-axis-label">${v}</text>
+      <line x1="${padding.left}" y1="${padding.top + yScale(v)}" x2="${width - padding.right}" y2="${padding.top + yScale(v)}" class="trend-grid-line"/>
+    `).join('');
+
+    return `
+      <div class="score-trend-chart">
+        <svg width="100%" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="trendGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#a3c1ad" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="#a3c1ad" stop-opacity="0.05"/>
+            </linearGradient>
+          </defs>
+          
+          <!-- Grid lines -->
+          ${yLabels}
+          
+          <!-- Area fill -->
+          <path d="${areaD}" fill="url(#trendGradient)" class="trend-area"/>
+          
+          <!-- Average line -->
+          <line x1="${padding.left}" y1="${avgY}" x2="${width - padding.right}" y2="${avgY}" class="trend-avg-line"/>
+          <text x="${width - padding.right + 5}" y="${avgY + 4}" class="trend-avg-label">平均 ${avgScore}</text>
+          
+          <!-- Trend line -->
+          <path d="${pathD}" fill="none" stroke="#87a793" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="trend-line"/>
+          
+          <!-- Data points -->
+          ${pointsHTML}
+        </svg>
+      </div>
+    `;
+  }
+
+  // --- Performance Metrics Calculator ---
+  function calculatePerformanceMetrics(examHistory) {
+    if (!examHistory || examHistory.length === 0) {
+      return { maxScore: 0, minScore: 0, improvement: 0, stability: '尚無數據' };
+    }
+
+    const scores = examHistory.map(h => h.score);
+    const maxScore = Math.max(...scores);
+    const minScore = Math.min(...scores);
+
+    // Calculate improvement (compare first half avg vs second half avg)
+    let improvement = 0;
+    if (examHistory.length >= 2) {
+      const sortedByDate = [...examHistory].sort((a, b) => new Date(a.date) - new Date(b.date));
+      const midPoint = Math.floor(sortedByDate.length / 2);
+      const firstHalfAvg = sortedByDate.slice(0, midPoint).reduce((s, h) => s + h.score, 0) / midPoint;
+      const secondHalfAvg = sortedByDate.slice(midPoint).reduce((s, h) => s + h.score, 0) / (sortedByDate.length - midPoint);
+      improvement = Math.round(secondHalfAvg - firstHalfAvg);
+    }
+
+    // Calculate stability (standard deviation)
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    const variance = scores.reduce((sum, s) => sum + Math.pow(s - avg, 2), 0) / scores.length;
+    const stdDev = Math.sqrt(variance);
+    
+    let stability = '優秀';
+    if (stdDev > 20) stability = '波動大';
+    else if (stdDev > 10) stability = '普通';
+    else if (stdDev > 5) stability = '良好';
+
+    return { maxScore, minScore, improvement, stability };
   }
 
   function createStudentDashboardViewHTML(user) {
@@ -1503,6 +1661,79 @@ window.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </div>
 
+                <!-- Exam Report Card (New Feature) -->
+                <div class="bg-white rounded-[2.5rem] shadow-card p-6 border border-white mb-8 relative overflow-hidden">
+                    <div class="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-sage/10 to-sky/10 rounded-full"></div>
+                    <div class="absolute -left-4 -bottom-4 w-20 h-20 bg-peach/5 rounded-full"></div>
+                    
+                    <div class="flex items-center justify-between mb-6 relative z-10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sage/20 to-sky/20 text-sage-dark flex items-center justify-center">
+                                <span class="material-symbols-outlined">assessment</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-coffee">個人考試報表</h3>
+                                <p class="text-xs text-coffee-light">成績趨勢與表現評估</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+                        <!-- Score Trend Chart -->
+                        <div class="lg:col-span-2 bg-[#fafdf9] rounded-2xl p-4 border border-sage/10">
+                            ${createScoreTrendChart(user.examHistory)}
+                        </div>
+                        
+                        <!-- Performance Metrics -->
+                        <div class="space-y-4">
+                            ${(() => {
+                                const metrics = calculatePerformanceMetrics(user.examHistory);
+                                return `
+                                    <div class="bg-gradient-to-br from-white to-sage/5 rounded-2xl p-4 border border-sage/20 hover:border-sage/40 transition-all cursor-pointer group">
+                                        <div class="flex items-center gap-3 mb-2">
+                                            <div class="w-8 h-8 rounded-lg bg-sage/20 text-sage-dark flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-lg">trending_up</span>
+                                            </div>
+                                            <span class="text-sm font-bold text-coffee-light">最高分</span>
+                                        </div>
+                                        <p class="text-3xl font-bold text-sage-dark group-hover:scale-105 transform transition-transform origin-left">${metrics.maxScore}</p>
+                                    </div>
+                                    
+                                    <div class="bg-gradient-to-br from-white to-peach/5 rounded-2xl p-4 border border-peach/20 hover:border-peach/40 transition-all cursor-pointer group">
+                                        <div class="flex items-center gap-3 mb-2">
+                                            <div class="w-8 h-8 rounded-lg bg-peach/20 text-peach flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-lg">trending_down</span>
+                                            </div>
+                                            <span class="text-sm font-bold text-coffee-light">最低分</span>
+                                        </div>
+                                        <p class="text-3xl font-bold text-peach group-hover:scale-105 transform transition-transform origin-left">${metrics.minScore}</p>
+                                    </div>
+                                    
+                                    <div class="bg-gradient-to-br from-white to-sky/5 rounded-2xl p-4 border border-sky/20 hover:border-sky/40 transition-all cursor-pointer group">
+                                        <div class="flex items-center gap-3 mb-2">
+                                            <div class="w-8 h-8 rounded-lg bg-sky/20 text-sky-700 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-lg">moving</span>
+                                            </div>
+                                            <span class="text-sm font-bold text-coffee-light">進步幅度</span>
+                                        </div>
+                                        <p class="text-3xl font-bold ${metrics.improvement >= 0 ? 'text-sage-dark' : 'text-peach'} group-hover:scale-105 transform transition-transform origin-left">${metrics.improvement >= 0 ? '+' : ''}${metrics.improvement}%</p>
+                                    </div>
+                                    
+                                    <div class="bg-gradient-to-br from-white to-lavender/10 rounded-2xl p-4 border border-lavender/30 hover:border-lavender/50 transition-all cursor-pointer group">
+                                        <div class="flex items-center gap-3 mb-2">
+                                            <div class="w-8 h-8 rounded-lg bg-lavender/30 text-purple-600 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-lg">balance</span>
+                                            </div>
+                                            <span class="text-sm font-bold text-coffee-light">穩定度</span>
+                                        </div>
+                                        <p class="text-2xl font-bold text-purple-600 group-hover:scale-105 transform transition-transform origin-left">${metrics.stability}</p>
+                                    </div>
+                                `;
+                            })()}
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Main Content Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     <!-- Left Column -->
@@ -1647,7 +1878,7 @@ window.addEventListener("DOMContentLoaded", () => {
                     <div class="option-letter">${
                       ["A", "B", "C", "D"][idx]
                     }</div>
-                    <div>${optText}</div>
+                    <div class="option-text">${optText}</div>
                     ${img}
                 </li>
              `;
@@ -2179,6 +2410,14 @@ window.addEventListener("DOMContentLoaded", () => {
       let analyticsContent = "";
       if (state.selectedStudentAnalyticsData) {
         const u = state.selectedStudentAnalyticsData;
+        
+        // Calculate performance metrics
+        const metrics = calculatePerformanceMetrics(u.examHistory);
+        const examCount = u.examHistory ? u.examHistory.length : 0;
+        const avgScore = examCount > 0
+          ? Math.round(u.examHistory.reduce((acc, curr) => acc + curr.score, 0) / examCount)
+          : 0;
+        
         // Re-use student dashboard logic but adapted for admin view (maybe add delete history buttons)
         const historyItems = u.examHistory
           .map(
@@ -2206,6 +2445,72 @@ window.addEventListener("DOMContentLoaded", () => {
           .join("");
 
         analyticsContent = `
+                    <!-- Student Summary Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white p-4 rounded-2xl shadow-card border border-white">
+                            <p class="text-sm font-bold text-coffee-light mb-2">測驗次數</p>
+                            <p class="text-3xl font-bold text-coffee">${examCount}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl shadow-card border border-white">
+                            <p class="text-sm font-bold text-coffee-light mb-2">平均分數</p>
+                            <p class="text-3xl font-bold text-coffee">${avgScore}</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl shadow-card border border-white">
+                            <p class="text-sm font-bold text-coffee-light mb-2">最高分 / 最低分</p>
+                            <p class="text-3xl font-bold text-sage-dark">${metrics.maxScore} <span class="text-lg font-normal text-coffee-light">/</span> <span class="text-peach">${metrics.minScore}</span></p>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl shadow-card border border-white">
+                            <p class="text-sm font-bold text-coffee-light mb-2">穩定度</p>
+                            <p class="text-2xl font-bold text-purple-600">${metrics.stability}</p>
+                        </div>
+                    </div>
+
+                    <!-- Exam Report Card (New for Admin) -->
+                    <div class="bg-white rounded-[2rem] shadow-card p-6 border border-white mb-6 relative overflow-hidden">
+                        <div class="absolute -right-8 -top-8 w-24 h-24 bg-gradient-to-br from-sage/10 to-sky/10 rounded-full"></div>
+                        
+                        <div class="flex items-center gap-3 mb-5">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sage/20 to-sky/20 text-sage-dark flex items-center justify-center">
+                                <span class="material-symbols-outlined">assessment</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-coffee">${u.name} 的考試報表</h3>
+                                <p class="text-xs text-coffee-light">成績趨勢分析</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Score Trend Chart -->
+                            <div class="lg:col-span-2 bg-[#fafdf9] rounded-2xl p-4 border border-sage/10">
+                                ${createScoreTrendChart(u.examHistory)}
+                            </div>
+                            
+                            <!-- Performance Metrics (Compact) -->
+                            <div class="space-y-3">
+                                <div class="bg-gradient-to-br from-white to-sage/5 rounded-xl p-3 border border-sage/20">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="material-symbols-outlined text-sage-dark text-lg">trending_up</span>
+                                        <span class="text-sm font-bold text-coffee-light">進步幅度</span>
+                                    </div>
+                                    <p class="text-2xl font-bold ${metrics.improvement >= 0 ? 'text-sage-dark' : 'text-peach'}">${metrics.improvement >= 0 ? '+' : ''}${metrics.improvement}%</p>
+                                </div>
+                                
+                                <div class="bg-[#fafdf9] rounded-xl p-3 border border-sage/10">
+                                    <p class="text-xs text-coffee-light mb-2">分數分佈</p>
+                                    <div class="flex gap-1 h-16 items-end">
+                                        ${u.examHistory.slice(-8).map((h, i) => {
+                                            const height = Math.max(h.score, 5);
+                                            let color = '#a3c1ad';
+                                            if (h.score < 40) color = '#ffaa8e';
+                                            else if (h.score < 70) color = '#ffd978';
+                                            return `<div class="flex-1 rounded-t" style="height: ${height}%; background-color: ${color}; min-height: 4px;" title="${h.score}分"></div>`;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="dashboard-details-grid full-layout">
                          <div class="detail-card">
                              <div class="detail-card-header"><h4>能力雷達圖</h4></div>
@@ -3113,10 +3418,17 @@ window.addEventListener("DOMContentLoaded", () => {
       const loginForm = document.getElementById("login-form");
       if (loginForm) loginForm.onsubmit = handleLogin;
 
-      document.querySelectorAll(".role-tab").forEach((btn) => {
-        btn.onclick = (e) =>
-          setState({ loginAsRole: e.target.dataset.role, loginError: "" });
-      });
+      // Admin login toggle button
+      const adminToggle = document.getElementById("admin-login-toggle");
+      if (adminToggle) {
+        adminToggle.onclick = () => setState({ loginAsRole: "admin", loginError: "" });
+      }
+
+      // User login toggle button (to go back from admin mode)
+      const userToggle = document.getElementById("user-login-toggle");
+      if (userToggle) {
+        userToggle.onclick = () => setState({ loginAsRole: "student", loginError: "" });
+      }
       return;
     }
 
@@ -3834,7 +4146,16 @@ window.addEventListener("DOMContentLoaded", () => {
 
             if (examHistoryListener) examHistoryListener();
 
+            // Flag to skip initial snapshot (data already loaded above)
+            let isInitialSnapshot = true;
+
             examHistoryListener = onSnapshot(qHistory, (snapshot) => {
+              // Skip initial snapshot to prevent double render on login
+              if (isInitialSnapshot) {
+                isInitialSnapshot = false;
+                return;
+              }
+
               const history = snapshot.docs.map((d) => ({
                 id: d.id,
                 ...d.data(),

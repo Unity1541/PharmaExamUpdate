@@ -1,20 +1,280 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 線上考試系統 - 專案說明文件
 
-# Run and deploy your AI Studio app
+## 📋 專案概述
 
-This contains everything you need to run your app locally.
+這是一個基於 Firebase 的線上考試系統，支援學生答題與管理員後台管理功能。系統使用 Firebase Authentication 進行身份驗證，Firestore 作為資料庫儲存所有考試資料。
 
-View your app in AI Studio: https://ai.studio/apps/drive/1-DY7gKVUZ_0I0gK3eO38gIFB0ejIldCy
+---
 
-## Run Locally
+## 🏗️ 系統架構
 
-**Prerequisites:**  Node.js
+```
+┌─────────────────────────────────────────────────────────┐
+│                      前端 (Vite + JS)                    │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐  │
+│  │  登入頁面   │  │  學生儀表板  │  │   管理員後台    │  │
+│  └─────────────┘  └─────────────┘  └─────────────────┘  │
+└────────────────────────┬────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│                    Firebase 服務                         │
+│  ┌───────────────────┐    ┌───────────────────────────┐ │
+│  │   Authentication  │    │        Firestore          │ │
+│  │   (使用者驗證)     │    │        (資料庫)           │ │
+│  └───────────────────┘    └───────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+```
 
+---
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 🔐 帳號建立流程
+
+### 步驟 1：在 Firebase Console 建立使用者
+
+1. 前往 [Firebase Console](https://console.firebase.google.com/)
+2. 選擇您的專案：`upgradeexam-1623f`
+3. 左側選單點擊 **Build** → **Authentication**
+4. 點擊 **Users** 標籤
+5. 點擊 **Add user** 按鈕
+6. 輸入：
+   - **Email**：使用者的電子郵件
+   - **Password**：使用者的密碼（至少 6 個字元）
+7. 點擊 **Add user** 完成
+
+### 步驟 2：首次登入時自動建立 Firestore 資料
+
+當使用者第一次登入時，系統會自動執行以下操作：
+
+```javascript
+// 系統檢查 Firestore 中是否有此使用者的資料
+const userDocRef = doc(db, "users", user.uid);
+let userDoc = await getDoc(userDocRef);
+
+// 如果不存在，自動建立使用者文件
+if (!userDoc.exists()) {
+  const newUserData = {
+    name: user.displayName || user.email.split("@")[0],
+    email: user.email,
+    role: user.email === "admin@test.com" ? "admin" : "student",
+    createdAt: new Date().toISOString(),
+  };
+  await setDoc(userDocRef, newUserData);
+}
+```
+
+### 角色判斷規則
+
+| Email 條件 | 分配角色 |
+|-----------|---------|
+| `admin@test.com` | `admin` (管理員) |
+| 其他所有 email | `student` (學生) |
+
+> ⚠️ **注意**：如需更多管理員帳號，需要手動修改 `index.js` 中的角色判斷邏輯，或直接在 Firestore 中手動修改使用者的 `role` 欄位。
+
+---
+
+## 📁 Firestore 資料庫結構
+
+### 使用者 Collection (`users`)
+
+```
+users/
+├── {userId}/
+│   ├── name: string        // 使用者名稱
+│   ├── email: string       // 電子郵件
+│   ├── role: string        // "admin" 或 "student"
+│   └── createdAt: string   // 建立時間 (ISO 格式)
+```
+
+### 科目 Collection (`subjects`)
+
+```
+subjects/
+├── {subjectId}/
+│   ├── name: string        // 科目名稱
+│   └── description: string // 科目描述
+```
+
+### 類別 Collection (`categories`)
+
+```
+categories/
+├── {categoryId}/
+│   ├── name: string        // 類別名稱
+│   ├── subject: string     // 所屬科目名稱
+│   └── timeLimit: number   // 時間限制 (分鐘)
+```
+
+### 題目 Collection (`questions`)
+
+```
+questions/
+├── {questionId}/
+│   ├── text: string          // 題目文字
+│   ├── options: array        // 選項陣列 [A, B, C, D]
+│   ├── optionImages: array   // 選項圖片 URL 陣列 (可選)
+│   ├── answer: string        // 正確答案
+│   ├── explanation: string   // 解答說明
+│   ├── subject: string       // 所屬科目
+│   ├── category: string      // 所屬類別
+│   ├── imgurl: string        // 題目圖片 URL (可選)
+│   └── createdAt: string     // 建立時間
+```
+
+### 考試歷史 Collection (`examHistory`)
+
+```
+examHistory/
+├── {historyId}/
+│   ├── userId: string        // 使用者 ID
+│   ├── subject: string       // 科目
+│   ├── category: string      // 類別
+│   ├── score: number         // 分數 (0-100)
+│   ├── totalQuestions: number // 總題數
+│   ├── correctCount: number  // 答對題數
+│   ├── answers: object       // 答題記錄 {questionId: optionIndex}
+│   ├── questions: array      // 題目 ID 列表
+│   └── date: string          // 作答時間
+```
+
+### 收藏題目 Collection (`bookmarkedQuestions`)
+
+```
+bookmarkedQuestions/
+├── {bookmarkId}/
+│   ├── userId: string        // 使用者 ID
+│   ├── questionId: string    // 題目 ID
+│   └── createdAt: string     // 收藏時間
+```
+
+### 手寫作業 Collection (`assignments`)
+
+```
+assignments/
+├── {assignmentId}/
+│   ├── title: string         // 作業標題
+│   ├── subject: string       // 所屬科目
+│   ├── category: string      // 所屬類別 (可選)
+│   ├── questions: array      // 題目陣列 [{text, image, score}]
+│   ├── maxScore: number      // 總分
+│   └── createdAt: string     // 建立時間
+```
+
+### 公告 Collection (`announcements`)
+
+```
+announcements/
+├── {announcementId}/
+│   ├── title: string         // 公告標題
+│   ├── content: string       // 公告內容
+│   ├── isBold: boolean       // 是否粗體
+│   ├── color: string         // 顏色
+│   ├── authorId: string      // 作者 ID
+│   ├── authorName: string    // 作者名稱
+│   ├── createdAt: string     // 建立時間
+│   └── updatedAt: string     // 更新時間
+```
+
+---
+
+## 👤 如何新增管理員帳號
+
+### 方法 1：使用特定 Email（推薦）
+
+修改 `index.js` 中的角色判斷邏輯：
+
+```javascript
+// 找到這段程式碼（約第 4012 行）
+role: user.email === "admin@test.com" ? "admin" : "student",
+
+// 改為支援多個管理員 email
+const adminEmails = ["admin@test.com", "newadmin@example.com"];
+role: adminEmails.includes(user.email) ? "admin" : "student",
+```
+
+### 方法 2：直接修改 Firestore
+
+1. 前往 [Firebase Console](https://console.firebase.google.com/) → **Firestore Database**
+2. 找到 `users` Collection
+3. 點擊要修改的使用者文件
+4. 將 `role` 欄位從 `student` 改為 `admin`
+5. 儲存變更
+
+---
+
+## 🚀 本地開發
+
+### 安裝依賴
+
+```bash
+npm install
+```
+
+### 啟動開發伺服器
+
+```bash
+npm run dev
+```
+
+### 建置生產版本
+
+```bash
+npm run build
+```
+
+---
+
+## 📝 功能列表
+
+### 學生功能
+
+- ✅ 選擇科目與類別進行考試
+- ✅ 考試計時與自動交卷
+- ✅ 查看考試歷史與分數統計
+- ✅ 收藏題目功能
+- ✅ 查看成績雷達圖
+- ✅ 手寫作業提交
+- ✅ 查看公告
+
+### 管理員功能
+
+- ✅ 使用者管理（查看/編輯/刪除學生）
+- ✅ 科目與類別管理
+- ✅ 題目管理（新增/編輯/刪除）
+- ✅ 題目批量上傳（JSON 格式）
+- ✅ 學生分數統計與分析
+- ✅ 手寫作業管理與評分
+- ✅ 公告管理
+
+---
+
+## 🔧 Firebase 設定
+
+專案使用的 Firebase 設定位於 `firebase.js`：
+
+```javascript
+const firebaseConfig = {
+  apiKey: "AIzaSyBMs8KL7-4I3c-uEgvsnABcy1cCaYxHhPo",
+  authDomain: "upgradeexam-1623f.firebaseapp.com",
+  projectId: "upgradeexam-1623f",
+  storageBucket: "upgradeexam-1623f.firebasestorage.app",
+  messagingSenderId: "226906643871",
+  appId: "1:226906643871:web:5b3b40d3fc69e3e9bab1aa",
+};
+```
+
+---
+
+## 📌 注意事項
+
+1. **安全性**：Firebase API Key 是公開的，安全性靠 Firebase Security Rules 保護
+2. **資料驗證**：所有資料存取應在 Firebase Security Rules 中設定適當的權限
+3. **密碼管理**：Firebase Authentication 處理密碼加密與驗證
+4. **即時更新**：系統使用 `onSnapshot` 即時監聽考試歷史變更
+
+---
+
+## 📞 聯絡資訊
+
+如有問題，請聯繫系統管理員。

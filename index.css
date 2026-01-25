@@ -29,6 +29,16 @@
   --hw-bg-editor: #ffffff;
   --hw-border: #e2e8f0;
   --hw-toolbar-bg: #f1f5f9;
+
+  /* Luxury Palette */
+  --luxury-black: #1C1917;
+  --luxury-dark: #44403C;
+  --luxury-gold: #CA8A04;
+  --luxury-gold-light: #EAB308;
+  --luxury-bg: #0a0a0a;
+  --luxury-text: #FAFAF9;
+  --luxury-border: rgba(202, 138, 4, 0.2);
+  --luxury-muted: #a8a29e;
 }
 
 * {
@@ -84,14 +94,368 @@ body {
   }
 }
 
-/* Login Page */
+/* ============================================
+   LUXURY LIQUID GLASS LOGIN PAGE
+   ============================================ */
+
+/* Login Container - Dark Premium Background with Study Desk Image */
 #login-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  background-color: var(--bg-color);
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  /* Elegant study desk background from Unsplash - lighter overlay to show image */
+  background: 
+    linear-gradient(135deg, rgba(10, 10, 10, 0.55) 0%, rgba(26, 26, 26, 0.5) 50%, rgba(15, 15, 15, 0.6) 100%),
+    url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2000&auto=format&fit=crop') center center / cover no-repeat fixed;
 }
+
+/* Animated Background Orbs */
+#login-container::before {
+  content: "";
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(202, 138, 4, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  top: -200px;
+  right: -200px;
+  animation: floatOrb1 20s ease-in-out infinite;
+}
+
+#login-container::after {
+  content: "";
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(202, 138, 4, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  bottom: -150px;
+  left: -150px;
+  animation: floatOrb2 25s ease-in-out infinite;
+}
+
+@keyframes floatOrb1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(50px, 100px) scale(1.1); }
+  66% { transform: translate(-30px, 50px) scale(0.95); }
+}
+
+@keyframes floatOrb2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-40px, -80px) scale(1.05); }
+  66% { transform: translate(60px, -40px) scale(0.9); }
+}
+
+/* Luxury Floating Navbar (Admin Login) */
+.luxury-navbar {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 100;
+}
+
+.luxury-admin-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(202, 138, 4, 0.3);
+  border-radius: 50px;
+  color: var(--luxury-gold);
+  font-family: "Montserrat", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.luxury-admin-btn:hover {
+  background: rgba(202, 138, 4, 0.1);
+  border-color: var(--luxury-gold);
+  box-shadow: 0 0 30px rgba(202, 138, 4, 0.2);
+  transform: translateY(-2px);
+}
+
+.luxury-admin-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+/* Main Login Card - Liquid Glass Effect */
+.luxury-login-card {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  padding: 60px 50px;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset,
+    0 0 80px rgba(202, 138, 4, 0.05);
+  z-index: 10;
+  animation: cardAppear 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Glass reflection effect */
+.luxury-login-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+  border-radius: 32px 32px 0 0;
+  pointer-events: none;
+}
+
+/* Brand Header */
+.luxury-brand {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.luxury-brand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--luxury-gold) 0%, #D4AF37 100%);
+  border-radius: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 20px 40px rgba(202, 138, 4, 0.3);
+  animation: iconGlow 3s ease-in-out infinite;
+}
+
+@keyframes iconGlow {
+  0%, 100% { box-shadow: 0 20px 40px rgba(202, 138, 4, 0.3); }
+  50% { box-shadow: 0 20px 60px rgba(202, 138, 4, 0.5); }
+}
+
+.luxury-brand-icon .material-symbols-outlined {
+  font-size: 40px;
+  color: var(--luxury-black);
+}
+
+.luxury-brand h1 {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 42px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.luxury-brand p {
+  font-family: "Montserrat", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--luxury-muted);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* Form Inputs */
+.luxury-form-group {
+  margin-bottom: 28px;
+}
+
+.luxury-label {
+  display: block;
+  font-family: "Montserrat", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--luxury-muted);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.luxury-input {
+  width: 100%;
+  padding: 18px 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.luxury-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.luxury-input:focus {
+  outline: none;
+  border-color: var(--luxury-gold);
+  background: rgba(202, 138, 4, 0.05);
+  box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.1);
+}
+
+/* Fix for browser autofill/autocomplete white background */
+.luxury-input:-webkit-autofill,
+.luxury-input:-webkit-autofill:hover,
+.luxury-input:-webkit-autofill:focus,
+.luxury-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgba(30, 30, 30, 0.95) inset !important;
+  box-shadow: 0 0 0 1000px rgba(30, 30, 30, 0.95) inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+  border-color: var(--luxury-gold) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Submit Button - Gold Gradient */
+.luxury-submit-btn {
+  width: 100%;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--luxury-gold) 0%, #D4AF37 50%, var(--luxury-gold-light) 100%);
+  background-size: 200% 200%;
+  border: none;
+  border-radius: 16px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--luxury-black);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  box-shadow: 0 15px 35px rgba(202, 138, 4, 0.3);
+  animation: gradientShift 5s ease infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.luxury-submit-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 45px rgba(202, 138, 4, 0.4);
+}
+
+.luxury-submit-btn:active {
+  transform: translateY(-1px);
+}
+
+/* Button shine effect */
+.luxury-submit-btn::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 60%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.luxury-submit-btn:hover::after {
+  transform: translateX(100%);
+}
+
+/* Error Message */
+.luxury-error {
+  min-height: 24px;
+  margin-top: 16px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 13px;
+  color: #ef4444;
+  text-align: center;
+}
+
+/* Decorative Bottom Text */
+.luxury-footer {
+  text-align: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.luxury-footer p {
+  font-family: "Montserrat", sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.luxury-footer .material-symbols-outlined {
+  font-size: 14px;
+  color: var(--luxury-gold);
+}
+
+/* Decorative grid lines */
+.luxury-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(202, 138, 4, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(202, 138, 4, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Admin Mode Indicator */
+.luxury-admin-mode {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(202, 138, 4, 0.1);
+  border: 1px solid rgba(202, 138, 4, 0.3);
+  border-radius: 50px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--luxury-gold);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ============================================
+   END LUXURY LOGIN PAGE STYLES
+   ============================================ */
 
 .login-box {
   width: 100%;
@@ -1426,7 +1790,7 @@ body {
 }
 .exam-option {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   padding: 16px;
   border: 1px solid var(--border-color);
@@ -1471,6 +1835,15 @@ body {
   border: 1px solid var(--border-color);
   object-fit: contain;
   display: block;
+}
+/* Option Text */
+.option-text {
+  flex: 1;
+  line-height: 1.6;
+  padding-top: 4px;
+  word-break: break-word;
+  font-size: 16px;
+  color: var(--text-color);
 }
 
 /* Nav Grid (Right Panel) */
@@ -1648,7 +2021,7 @@ body {
 }
 .review-option {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 12px;
   border: 1px solid var(--border-color);
@@ -2368,4 +2741,129 @@ body {
     text-anchor: middle;
     dominant-baseline: middle;
     font-weight: 600;
+}
+
+/* ===== Score Trend Chart Styles ===== */
+.score-trend-chart {
+    width: 100%;
+    min-height: 200px;
+}
+
+.score-trend-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    text-align: center;
+}
+
+/* Grid lines */
+.trend-grid-line {
+    stroke: #e8edea;
+    stroke-width: 1;
+    stroke-dasharray: 4, 4;
+}
+
+/* Axis labels */
+.trend-axis-label {
+    font-size: 11px;
+    fill: #8d7a71; /* coffee-light */
+    font-weight: 500;
+}
+
+/* Area fill animation */
+.trend-area {
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out forwards;
+    animation-delay: 0.3s;
+}
+
+/* Main trend line */
+.trend-line {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: drawLine 1.5s ease-out forwards;
+}
+
+/* Data points */
+.trend-point {
+    transform-origin: center;
+    opacity: 0;
+    animation: popIn 0.3s ease-out forwards;
+    animation-delay: var(--delay, 0s);
+    cursor: pointer;
+    transition: r 0.2s ease, filter 0.2s ease;
+}
+
+.trend-point:hover {
+    r: 8;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.trend-point-group {
+    animation: fadeIn 0.5s ease-out forwards;
+    animation-delay: calc(var(--delay) + 0.5s);
+    opacity: 0;
+}
+
+/* Score labels */
+.trend-score-label {
+    font-size: 11px;
+    fill: #5c4b43; /* coffee */
+    font-weight: 700;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-out forwards;
+    animation-delay: calc(var(--delay, 0s) + 0.5s);
+}
+
+/* Date labels */
+.trend-date-label {
+    font-size: 10px;
+    fill: #8d7a71; /* coffee-light */
+    font-weight: 500;
+}
+
+/* Average line */
+.trend-avg-line {
+    stroke: #8d7a71; /* coffee-light */
+    stroke-width: 2;
+    stroke-dasharray: 8, 4;
+    opacity: 0.6;
+}
+
+.trend-avg-label {
+    font-size: 11px;
+    fill: #8d7a71;
+    font-weight: 600;
+}
+
+/* Animations */
+@keyframes drawLine {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes popIn {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    70% {
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
