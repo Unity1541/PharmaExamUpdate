@@ -1205,95 +1205,111 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // --- Login View ---
   function createLoginViewHTML() {
-    // Education Style Login Page
-    // Right corner: Admin login button
-    // Center: User login form with clean styling
+    // Cozy Study Style Login Page - Split Layout
+    // Left: User Login Form (Focus mode)
+    // Right: Cozy Night Image (Desktop only)
+    // Top Right: Admin Toggle
     
     const isAdminMode = state.loginAsRole === "admin";
     
     // Toggle Button Logic
     const toggleBtnHTML = !isAdminMode ? `
-        <button class="edu-admin-btn" id="admin-login-toggle">
-            <span class="material-symbols-outlined">admin_panel_settings</span>
+        <button class="cozy-admin-btn" id="admin-login-toggle">
+            <span class="material-symbols-outlined">settings</span>
             管理員登入
         </button>
     ` : `
-        <button class="edu-admin-btn" id="user-login-toggle" style="color: #64748b; border-color: #cbd5e1;">
+        <button class="cozy-admin-btn" id="user-login-toggle">
             <span class="material-symbols-outlined">arrow_back</span>
-            返回使用者
+            返回一般登入
         </button>
     `;
 
-    // Card Content
-    const headerTitle = isAdminMode ? "管理員後台" : "ExamPilot 線上考試";
-    const headerDesc = isAdminMode ? "請輸入管理員憑證" : "開啟您的學習旅程";
-    const btnText = isAdminMode ? "進入管理系統" : "開始學習";
-    const icon = isAdminMode ? "shield" : "school";
+    // Content Based on Mode
+    const headerTitle = isAdminMode ? "系統管理後台" : "ExamPilot藥師國考專區";
+    const headerDesc = isAdminMode ? "請輸入管理員憑證" : "準備好開始今天的藥師國考學習了嗎？";
+    const btnText = isAdminMode ? "登入管理系統" : "開始專注學習";
+    const icon = isAdminMode ? "shield" : "menu_book"; // book icon for study
     
     // Admin Badge
     const adminBadge = isAdminMode ? `
-        <div class="edu-admin-mode-badge">
-            <span class="material-symbols-outlined" style="font-size: 16px;">verified_user</span>
+        <div class="cozy-badge">
+            <span class="material-symbols-outlined" style="font-size: 14px;">verified_user</span>
             管理員模式
         </div>
     ` : "";
 
     return `
-        <!-- Top Right Navbar for Admin Toggle -->
-        <nav class="edu-navbar">
+        <!-- Top Right Admin Toggle -->
+        <nav class="cozy-admin-toggle-container">
             ${toggleBtnHTML}
         </nav>
         
-        <!-- Main Login Card -->
-        <div class="edu-login-card">
-            ${adminBadge}
+        <!-- Left Panel: Login Form -->
+        <div class="cozy-left-panel">
+            <div class="cozy-login-wrapper">
+                ${adminBadge}
+                
+                <div class="cozy-brand">
+                    <div class="cozy-logo-area">
+                        <div class="cozy-logo-icon">
+                            <span class="material-symbols-outlined" style="font-size: 26px;">${icon}</span>
+                        </div>
+                        <span style="font-weight: 700; color: #fbbf24; font-size: 20px;">Night Owl Study</span>
+                    </div>
+                    <h1>${headerTitle}</h1>
+                    <p>${headerDesc}</p>
+                </div>
+                
+                <form id="login-form">
+                    <div class="cozy-form-group">
+                        <label class="cozy-label">電子信箱</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            class="cozy-input"
+                            placeholder="name@student.com" 
+                            required 
+                            autocomplete="email"
+                        >
+                    </div>
+                    
+                    <div class="cozy-form-group">
+                        <label class="cozy-label">密碼</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            class="cozy-input"
+                            placeholder="輸入密碼" 
+                            required 
+                            autocomplete="current-password"
+                        >
+                    </div>
+                    
+                    <div class="cozy-error">${state.loginError}</div>
+                    
+                    <button type="submit" class="cozy-submit-btn">
+                        <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 8px; vertical-align: text-bottom;">play_circle</span>
+                        ${btnText}
+                    </button>
+                    
+                    <div style="margin-top: 16px; text-align: center;">
+                        <a href="#" style="font-size: 13px; color: #78716c; text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='#d6d3d1'" onmouseout="this.style.color='#78716c'">忘記密碼？</a>
+                    </div>
+                </form>
+                
+                <div class="cozy-footer">
+                    <span class="material-symbols-outlined" style="font-size: 14px; color: #d97706;">local_cafe</span>
+                    <span>為夢想努力的每一個夜晚</span>
+                </div>
+            </div>
+        </div>
         
-            <div class="edu-brand">
-                <div class="edu-icon-container">
-                    <span class="material-symbols-outlined" style="font-size: 32px;">${icon}</span>
-                </div>
-                <h1>${headerTitle}</h1>
-                <p>${headerDesc}</p>
-            </div>
-            
-            <form id="login-form">
-                <div class="edu-form-group">
-                    <label class="edu-label">電子郵件</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        class="edu-input"
-                        placeholder="name@example.com" 
-                        required 
-                        autocomplete="email"
-                    >
-                </div>
-                
-                <div class="edu-form-group">
-                    <label class="edu-label">密碼</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        class="edu-input"
-                        placeholder="請輸入密碼" 
-                        required 
-                        autocomplete="current-password"
-                    >
-                </div>
-                
-                <div class="edu-error">${state.loginError}</div>
-                
-                <button type="submit" class="edu-submit-btn">
-                    ${btnText}
-                </button>
-            </form>
-            
-            <div class="edu-footer">
-                <span class="material-symbols-outlined" style="font-size: 14px; color: #0ea5e9;">check_circle</span>
-                <span>系統安全加密連線</span>
-            </div>
+        <!-- Right Panel: Image Placeholder -->
+        <div class="cozy-right-panel">
+            <!-- Background image is set in CSS -->
         </div>
     `;
   }

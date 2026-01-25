@@ -95,250 +95,271 @@ body {
 }
 
 /* ============================================
-   EDUCATION STYLE LOGIN PAGE
+   COZY STUDY LOGIN PAGE - SPLIT LAYOUT
    ============================================ */
 
-/* Main Container - Friendly Learning Atmosphere */
+/* Main Page Container - Split Layout */
 #login-container {
   display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: 100vh;
-  position: relative;
+  width: 100vw;
+  font-family: "Noto Sans TC", sans-serif;
+  background-color: #1c1917; /* Stone-900 Warm Dark */
   overflow: hidden;
-  /* Clean, light gradient suitable for education */
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #bae6fd 100%);
-  font-family: "Quicksand", sans-serif;
 }
 
-/* Background Decorative Elements - Abstract shapes representing knowledge/growth */
-#login-container::before {
+/* Left Panel - Login Form (Focus Area) */
+.cozy-left-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  background-color: #1c1917;
+  position: relative;
+  z-index: 10;
+  border-right: 1px solid rgba(251, 191, 36, 0.1); /* Subtle Amber border */
+}
+
+/* Right Panel - Image Area */
+.cozy-right-panel {
+  flex: 1.2; /* Slightly wider for the image */
+  background-color: #000000;
+  background-image: url('Images/cozy_study_night.png');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  display: none; /* Default hidden on mobile */
+}
+
+/* Overlay for Right Panel to enhance cozy vibe */
+.cozy-right-panel::before {
   content: "";
   position: absolute;
-  top: -10%;
-  right: -5%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
-  border-radius: 50%;
-  z-index: 0;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(28, 25, 23, 0.3), rgba(28, 25, 23, 0.6));
 }
 
-#login-container::after {
+/* Add a subtle glow/vignette */
+.cozy-right-panel::after {
   content: "";
   position: absolute;
-  bottom: -10%;
-  left: -5%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(79, 70, 229, 0.08) 0%, transparent 70%);
-  border-radius: 50%;
-  z-index: 0;
+  inset: 0;
+  box-shadow: inset 20px 0 100px rgba(0,0,0,0.8);
 }
 
-/* Floating Admin Access Button - Top Right */
-.edu-navbar {
+/* Top Right Admin Toggle - Fixed Position */
+.cozy-admin-toggle-container {
   position: absolute;
   top: 24px;
   right: 24px;
-  z-index: 20;
+  z-index: 50;
 }
 
-.edu-admin-btn {
+.cozy-admin-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 10px 20px;
-  background-color: white;
-  border: 1px solid #e2e8f0;
+  background-color: rgba(255, 255, 255, 0.05); /* Glass dark */
+  border: 1px solid rgba(251, 191, 36, 0.3); /* Amber border */
   border-radius: 50px;
-  color: #64748b;
-  font-family: "Quicksand", sans-serif;
+  color: #fbbf24; /* Amber-400 */
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(4px);
 }
 
-.edu-admin-btn:hover {
-  background-color: #f8fafc;
-  color: #0ea5e9;
-  border-color: #0ea5e9;
-  box-shadow: 0 4px 6px rgba(14, 165, 233, 0.1);
+.cozy-admin-btn:hover {
+  background-color: rgba(251, 191, 36, 0.1);
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
   transform: translateY(-1px);
 }
 
-/* Admin Mode Indicator for Login Card */
-.edu-admin-mode-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background-color: #fff1f2;
-    color: #e11d48;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
-    margin-bottom: 16px;
-}
-
-/* Main Login Card - Clean & Focused */
-.edu-login-card {
-  position: relative;
+/* Login Content Wrapper */
+.cozy-login-wrapper {
   width: 100%;
-  max-width: 440px;
-  padding: 48px 40px;
-  background: white;
-  border-radius: 24px;
-  box-shadow: 
-    0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 20px 25px -5px rgba(0, 0, 0, 0.05),
-    0 0 0 1px rgba(0,0,0,0.02); /* Subtle border */
-  z-index: 10;
-  animation: slideUpFade 0.6s ease-out;
-  text-align: center;
+  max-width: 420px;
+  text-align: left;
+  animation: fadeIn 0.8s ease-out;
 }
 
-@keyframes slideUpFade {
-  from { opacity: 0; transform: translateY(20px); }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Header Section */
-.edu-brand {
-  margin-bottom: 32px;
+/* Brand Header */
+.cozy-brand {
+  margin-bottom: 40px;
 }
 
-.edu-icon-container {
-    width: 64px; 
-    height: 64px;
-    margin: 0 auto 20px;
-    background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.3);
-    transform: rotate(-3deg);
-    transition: transform 0.3s ease;
+.cozy-logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
-.edu-login-card:hover .edu-icon-container {
-    transform: rotate(0deg) scale(1.05);
+.cozy-logo-icon {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #451a03;
+  box-shadow: 0 4px 20px rgba(251, 191, 36, 0.3);
 }
 
-.edu-brand h1 {
-  font-size: 28px;
+.cozy-brand h1 {
+  font-size: 32px;
   font-weight: 700;
-  color: #1e293b; /* Slate 800 */
+  color: #ffffff;
   margin-bottom: 8px;
-  letter-spacing: -0.5px;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
-.edu-brand p {
+.cozy-brand p {
   font-size: 15px;
-  color: #64748b; /* Slate 500 */
-  line-height: 1.5;
+  color: #a8a29e; /* Stone-400 */
+  line-height: 1.6;
+}
+
+/* Admin Mode Badge */
+.cozy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background-color: rgba(220, 38, 38, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 16px;
 }
 
 /* Form Styles */
-.edu-form-group {
+.cozy-form-group {
   margin-bottom: 24px;
-  text-align: left;
 }
 
-.edu-label {
+.cozy-label {
   display: block;
-  font-size: 13px;
-  font-weight: 700;
-  color: #334155; /* Slate 700 */
+  font-size: 14px;
+  font-weight: 600;
+  color: #d6d3d1; /* Stone-300 */
   margin-bottom: 8px;
   margin-left: 4px;
 }
 
-/* Input Fields - White Background prevents Autofill Issues naturally */
-.edu-input {
+/* Input Fields - Dark Glassy Background */
+.cozy-input {
   width: 100%;
-  padding: 14px 16px;
-  background-color: #f8fafc; /* Very light slate, almost white */
-  border: 2px solid #e2e8f0;
+  padding: 14px 18px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  font-size: 16px; /* 16px prevents iOS zoom */
-  color: #334155;
-  transition: all 0.2s ease;
+  font-size: 16px;
+  color: #ffffff;
+  transition: all 0.3s ease;
 }
 
-.edu-input:focus {
+.cozy-input:focus {
   outline: none;
-  background-color: white;
-  border-color: #3b82f6; /* Blue border */
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.15);
 }
 
-.edu-input::placeholder {
-    color: #94a3b8;
+.cozy-input::placeholder {
+  color: #57534e;
 }
 
 /* Submit Button */
-.edu-submit-btn {
+.cozy-submit-btn {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(to right, #0ea5e9, #2563eb);
-  color: white;
+  background: linear-gradient(to right, #d97706, #fbbf24);
+  color: #451a03;
   border: none;
   border-radius: 12px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+  transition: all 0.3s ease;
+  margin-top: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
 }
 
-.edu-submit-btn:hover {
+.cozy-submit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
-}
-
-.edu-submit-btn:active {
-  transform: translateY(0);
+  box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+  background: linear-gradient(to right, #b45309, #d97706);
 }
 
 /* Error Message */
-.edu-error {
-    color: #ef4444;
-    font-size: 13px;
-    font-weight: 600;
-    min-height: 20px;
-    margin-top: 8px;
-    text-align: left;
-    margin-left: 4px;
+.cozy-error {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 8px;
+  min-height: 20px;
+  text-align: center;
 }
 
 /* Footer Section */
-.edu-footer {
-  margin-top: 32px;
+.cozy-footer {
+  margin-top: 40px;
   padding-top: 24px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  color: #78716c;
   font-size: 12px;
-  color: #94a3b8;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 6px;
+  justify-content: center;
 }
 
-/* Mobile Responsive */
-@media (max-width: 480px) {
-    .edu-login-card {
-        padding: 32px 24px;
-        max-width: 90%;
-    }
+/* ============================================
+   AUTOFILL FIX FOR DARK THEME
+   Re-enabling the transition hack for dark backgrounds
+   ============================================ */
+.cozy-input:-webkit-autofill,
+.cozy-input:-webkit-autofill:hover, 
+.cozy-input:-webkit-autofill:focus, 
+.cozy-input:-webkit-autofill:active {
+    /* METHOD 1: Delay the background color transition indefinitely */
+    -webkit-transition-delay: 99999s;
+    transition-delay: 99999s;
+    -webkit-transition-property: background-color, color;
+    transition-property: background-color, color;
     
-    .edu-img-container {
-        display: none; /* Hide illustrative images on small mobile if added */
-    }
+    /* METHOD 2: Overlay a hard shadow to hide the native background */
+    /* Using #292524 (Stone-800) to match input background approx */
+    -webkit-box-shadow: 0 0 0 1000px #292524 inset !important;
+    box-shadow: 0 0 0 1000px #292524 inset !important;
+    
+    /* Ensure text is visible */
+    -webkit-text-fill-color: #ffffff !important;
+    caret-color: #ffffff !important;
+    
+    /* Reset other properties */
+    background-color: transparent !important;
+    transition: background-color 99999s ease-in-out 0s !important;
+}
+
+/* Responsive - Desktop Split */
+@media (min-width: 768px) {
+  .cozy-right-panel {
+    display: block; /* Show image on desktop */
+  }
 }
 
 .login-box {
