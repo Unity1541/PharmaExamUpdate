@@ -3432,6 +3432,46 @@ window.addEventListener("DOMContentLoaded", () => {
       if (userToggle) {
         userToggle.onclick = () => setState({ loginAsRole: "student", loginError: "" });
       }
+
+      // === MOBILE AUTOFILL FIX ===
+      // Add event listeners to detect autofill and input changes
+      const emailInput = document.getElementById("email");
+      const passwordInput = document.getElementById("password");
+      
+      const handleInputChange = (input) => {
+        if (input && input.value) {
+          input.classList.add("has-value");
+        } else if (input) {
+          input.classList.remove("has-value");
+        }
+      };
+      
+      const handleAutofillAnimation = (e) => {
+        if (e.animationName === "onAutoFillStart") {
+          e.target.classList.add("autofill-detected", "has-value");
+        } else if (e.animationName === "onAutoFillCancel") {
+          e.target.classList.remove("autofill-detected");
+        }
+      };
+      
+      if (emailInput) {
+        emailInput.addEventListener("input", () => handleInputChange(emailInput));
+        emailInput.addEventListener("change", () => handleInputChange(emailInput));
+        emailInput.addEventListener("blur", () => handleInputChange(emailInput));
+        emailInput.addEventListener("animationstart", handleAutofillAnimation);
+        // Check initial value (for browser-restored values)
+        setTimeout(() => handleInputChange(emailInput), 100);
+      }
+      
+      if (passwordInput) {
+        passwordInput.addEventListener("input", () => handleInputChange(passwordInput));
+        passwordInput.addEventListener("change", () => handleInputChange(passwordInput));
+        passwordInput.addEventListener("blur", () => handleInputChange(passwordInput));
+        passwordInput.addEventListener("animationstart", handleAutofillAnimation);
+        setTimeout(() => handleInputChange(passwordInput), 100);
+      }
+      // === END MOBILE AUTOFILL FIX ===
+
       return;
     }
 

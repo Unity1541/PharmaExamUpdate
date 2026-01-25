@@ -317,37 +317,60 @@ body {
   box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.1);
 }
 
-/* Fix for browser autofill/autocomplete white background - ENHANCED for mobile */
+/* ============================================
+   AUTOFILL FIX - USING ANIMATION DETECTION
+   ============================================ */
+
+/* Keyframe that triggers when autofill is applied */
+@keyframes onAutoFillStart {
+  from { /*empty*/ }
+  to { /*empty*/ }
+}
+
+@keyframes onAutoFillCancel {
+  from { /*empty*/ }
+  to { /*empty*/ }
+}
+
+/* Apply animation name to detect autofill */
+.luxury-input:-webkit-autofill {
+  animation-name: onAutoFillStart;
+  animation-duration: 0.001s;
+}
+
+.luxury-input:not(:-webkit-autofill) {
+  animation-name: onAutoFillCancel;
+  animation-duration: 0.001s;
+}
+
+/* Main autofill style override */
 .luxury-input:-webkit-autofill,
 .luxury-input:-webkit-autofill:hover,
 .luxury-input:-webkit-autofill:focus,
-.luxury-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 9999px #1e1e1e inset !important;
-  box-shadow: 0 0 0 9999px #1e1e1e inset !important;
+.luxury-input:-webkit-autofill:active,
+.luxury-input.autofill-detected {
+  -webkit-box-shadow: 0 0 0 9999px #252525 inset !important;
+  box-shadow: 0 0 0 9999px #252525 inset !important;
   -webkit-text-fill-color: #ffffff !important;
   color: #ffffff !important;
   caret-color: #ffffff !important;
-  border-color: var(--luxury-gold) !important;
-  background-color: #1e1e1e !important;
-  background-clip: content-box !important;
-  -webkit-background-clip: text !important;
-  transition: background-color 9999s ease-in-out 0s, 
-              color 9999s ease-in-out 0s,
-              -webkit-text-fill-color 9999s ease-in-out 0s !important;
+  border-color: rgba(202, 138, 4, 0.5) !important;
+  background-color: #252525 !important;
+  background: #252525 !important;
+  transition: none !important;
 }
 
-/* Additional state combinations for mobile */
-.luxury-input:-webkit-autofill::first-line {
-  color: #ffffff !important;
-  font-family: "Montserrat", sans-serif !important;
-  font-size: 15px !important;
-}
-
-/* Input that has lost focus but was autofilled */
-.luxury-input:not(:focus):-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 9999px #1e1e1e inset !important;
-  box-shadow: 0 0 0 9999px #1e1e1e inset !important;
+/* Force text color on filled inputs */
+.luxury-input.has-value {
   -webkit-text-fill-color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Override any browser-imposed styles */
+input.luxury-input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 /* Submit Button - Gold Gradient */
