@@ -111,6 +111,15 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ===== Announcements =====
+    // 公告欄
+    match /announcements/{announcementId} {
+      // 登入使用者可讀取
+      allow read: if isSignedIn();
+      // 僅管理員可寫入
+      allow write: if isAdmin();
+    }
+
     // ===== Student-Specific Data =====
     // 學生個人資料
     
