@@ -283,6 +283,29 @@ body {
   color: #57534e;
 }
 
+/* Fix for Select Options Visibility */
+.cozy-input option {
+  background-color: #1c1917;
+  color: #ffffff;
+}
+
+/* Fix for cozy-input visibility inside light-themed admin container */
+.admin-view-container .cozy-input {
+  color: var(--text-color);
+  background-color: #ffffff;
+  border-color: var(--border-color);
+}
+
+.admin-view-container .cozy-input:focus {
+  background-color: #ffffff;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--badge-bg);
+}
+
+.admin-view-container .cozy-input::placeholder {
+  color: var(--text-light);
+}
+
 /* Submit Button */
 .cozy-submit-btn {
   width: 100%;

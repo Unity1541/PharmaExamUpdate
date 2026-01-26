@@ -41,9 +41,12 @@ window.addEventListener("DOMContentLoaded", () => {
     selectedStudentAnalyticsData: null,
     selectedBulkUploadSubject: null,
     selectedBulkUploadCategory: null,
+    selectedBulkUploadCategory: null,
     selectedFile: null,
     uploadStatus: "idle", // idle, success, error
     uploadMessage: "",
+    selectedManualSubject: null,
+    selectedManualCategory: null,
     selectedExamSubject: null,
     examState: null,
     reviewingExam: null,
@@ -113,6 +116,12 @@ window.addEventListener("DOMContentLoaded", () => {
       newState.uploadStatus = "idle";
       newState.uploadMessage = "";
     }
+    if (
+      newState.selectedManualSubject !== undefined &&
+      newState.selectedManualSubject !== state.selectedManualSubject
+    ) {
+      newState.selectedManualCategory = null;
+    }
     // Correctly clear the timer only when navigating away from the exam view.
     if (
       newState.currentView &&
@@ -140,6 +149,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Expose setState globally for inline HTML event handlers
   window.setState = setState;
+  window.handleManualAddSubjectChange = handleManualAddSubjectChange;
+  window.handleManualAddCategoryChange = handleManualAddCategoryChange;
+  window.handleAddQuestion = handleAddQuestion;
 
   const setLoading = (isLoading) => {
     const indicator = document.getElementById("loading-indicator");
@@ -502,6 +514,103 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     };
     reader.readAsText(state.selectedFile);
+  }
+
+  // --- MANUAL QUESTION ADDITION FUNCTIONS ---
+  function handleManualAddSubjectChange(value) {
+    setState({ selectedManualSubject: value });
+  }
+
+  function handleManualAddCategoryChange(value) {
+    setState({ selectedManualCategory: value });
+  }
+
+  async function handleAddQuestion(e) {
+    e.preventDefault();
+    setLoading(true);
+
+    const form = e.target;
+    // Basic Validation
+    if (!state.selectedManualSubject || !state.selectedManualCategory) {
+        alert("請先選擇科目與類別");
+        setLoading(false);
+        return;
+    }
+
+    const questionText = form.questionText.value.trim();
+    if (!questionText) {
+        alert("請輸入題目內容");
+        setLoading(false);
+        return;
+    }
+
+    // Options
+    const options = [
+        form.option1.value.trim(),
+        form.option2.value.trim(),
+        form.option3.value.trim(),
+        form.option4.value.trim(),
+    ];
+    if (options.some(o => !o)) {
+        alert("請填寫所有選項文字");
+        setLoading(false);
+        return;
+    }
+
+    const optionImages = [
+        form.option1_img.value.trim() || null,
+        form.option2_img.value.trim() || null,
+        form.option3_img.value.trim() || null,
+        form.option4_img.value.trim() || null,
+    ];
+
+    const answerVal = form.answer.value; // "A", "B", "C", "D"
+    const answerMap = { "A": 0, "B": 1, "C": 2, "D": 3 };
+    const answerIndex = answerMap[answerVal];
+    const correctOptionText = options[answerIndex];
+
+    const newQuestion = {
+        subject: state.selectedManualSubject,
+        category: state.selectedManualCategory,
+        text: questionText,
+        imgurl: form.imgurl.value.trim() || null,
+        options: options,
+        optionImages: optionImages,
+        answer: correctOptionText,
+        explanation: form.explanation.value.trim() || null,
+        explanationImage: form.explanationImage.value.trim() || null,
+        createdAt: new Date().toISOString(),
+    };
+
+    try {
+        const docRef = await addDoc(collection(db, "questions"), newQuestion);
+        // Update local state
+        const addedQ = { id: docRef.id, ...newQuestion };
+        setState({ 
+            allQuestions: [...state.allQuestions, addedQ],
+            // Optional: clear form or keep stay? Let's reset form content but keep subject/category
+        }); 
+        alert("題目新增成功！");
+        // Reset inputs but keep subject/category selection
+        form.questionText.value = "";
+        form.imgurl.value = "";
+        form.option1.value = "";
+        form.option2.value = "";
+        form.option3.value = "";
+        form.option4.value = "";
+        form.option1_img.value = "";
+        form.option2_img.value = "";
+        form.option3_img.value = "";
+        form.option4_img.value = "";
+        form.answer.value = "A";
+        form.explanation.value = "";
+        form.explanationImage.value = "";
+    } catch (err) {
+        console.error("Error adding question:", err);
+        alert("新增失敗: " + err.message);
+    } finally {
+        setLoading(false);
+    }
   }
 
   async function handleUpdateUser(e) {
@@ -1148,6 +1257,13 @@ window.addEventListener("DOMContentLoaded", () => {
                 : "text-coffee-light hover:bg-white hover:text-coffee hover:shadow-sm"
             } transition-all font-semibold">
                 <span class="material-symbols-outlined">upload</span>題目上傳
+            </a>
+            <a href="#" id="nav-manual-add" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl ${
+              state.currentView === "manual-add-question"
+                ? "bg-peach/10 text-peach font-bold shadow-sm"
+                : "text-coffee-light hover:bg-white hover:text-coffee hover:shadow-sm"
+            } transition-all font-semibold">
+                <span class="material-symbols-outlined">post_add</span>單題新增
             </a>
             <a href="#" id="nav-student-analytics" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl ${
               state.currentView === "student-analytics"
@@ -2380,6 +2496,9 @@ window.addEventListener("DOMContentLoaded", () => {
 <pre id="json-template-code">[
   {
     "text": "題目敘述 (必填)",
+    <pre id="json-template-code">[
+  {
+    "text": "題目敘述 (必填)",
     "imgurl": "/images/question.jpg",
     "options": [
       "選項A (必填)", 
@@ -2404,6 +2523,110 @@ window.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </div>
              `;
+    }
+
+    // 5. Manual Add Question
+    if (state.currentView === "manual-add-question") {
+        const catOptions =
+            state.selectedManualSubject &&
+            state.categories[state.selectedManualSubject]
+            ? state.categories[state.selectedManualSubject]
+                .map((c) => `<option value="${c.name}">${c.name}</option>`)
+                .join("")
+            : '<option value="">請先選擇科目</option>';
+        
+        return `
+            <div class="admin-view-container">
+                <div class="page-header"><h2>單題新增</h2></div>
+                <div class="dashboard-container">
+                    <form onsubmit="window.handleAddQuestion(event)" class="admin-form">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="form-group">
+                                <label>選擇科目</label>
+                                <select onchange="window.handleManualAddSubjectChange(this.value)" required class="cozy-input">
+                                    <option value="">請選擇</option>
+                                    ${state.subjects.map(s => `<option value="${s.name}" ${state.selectedManualSubject === s.name ? 'selected' : ''}>${s.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>選擇類別</label>
+                                <select name="category" onchange="window.handleManualAddCategoryChange(this.value)" required class="cozy-input" ${!state.selectedManualSubject ? 'disabled' : ''}>
+                                    <option value="">請選擇</option>
+                                    ${
+                                        state.selectedManualSubject && state.categories[state.selectedManualSubject] 
+                                        ? state.categories[state.selectedManualSubject].map(c => `<option value="${c.name}" ${state.selectedManualCategory === c.name ? 'selected' : ''}>${c.name}</option>`).join('')
+                                        : ''
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-6">
+                            <label>題目內容</label>
+                            <textarea name="questionText" rows="3" class="cozy-input" required placeholder="請輸入題目敘述..."></textarea>
+                        </div>
+                        
+                        <div class="form-group mb-6">
+                            <label>題目圖片路徑 (選填)</label>
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-gray-400">image</span>
+                                <input type="text" name="imgurl" class="cozy-input" placeholder="/Images/path/to/image.jpg">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <label class="font-bold text-coffee mb-2 block">選項 A</label>
+                                <input type="text" name="option1" class="cozy-input mb-2" placeholder="文字內容" required>
+                                <input type="text" name="option1_img" class="cozy-input text-sm" placeholder="圖片路徑 (選填)">
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <label class="font-bold text-coffee mb-2 block">選項 B</label>
+                                <input type="text" name="option2" class="cozy-input mb-2" placeholder="文字內容" required>
+                                <input type="text" name="option2_img" class="cozy-input text-sm" placeholder="圖片路徑 (選填)">
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <label class="font-bold text-coffee mb-2 block">選項 C</label>
+                                <input type="text" name="option3" class="cozy-input mb-2" placeholder="文字內容" required>
+                                <input type="text" name="option3_img" class="cozy-input text-sm" placeholder="圖片路徑 (選填)">
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <label class="font-bold text-coffee mb-2 block">選項 D</label>
+                                <input type="text" name="option4" class="cozy-input mb-2" placeholder="文字內容" required>
+                                <input type="text" name="option4_img" class="cozy-input text-sm" placeholder="圖片路徑 (選填)">
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-6">
+                            <label>正確答案</label>
+                            <select name="answer" required class="cozy-input">
+                                <option value="A">選項 A</option>
+                                <option value="B">選項 B</option>
+                                <option value="C">選項 C</option>
+                                <option value="D">選項 D</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-6">
+                            <label>詳解內容 (選填)</label>
+                            <textarea name="explanation" rows="3" class="cozy-input" placeholder="請輸入詳解..."></textarea>
+                        </div>
+                        
+                        <div class="form-group mb-8">
+                            <label>詳解圖片路徑 (選填)</label>
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-gray-400">image</span>
+                                <input type="text" name="explanationImage" class="cozy-input" placeholder="/Images/path/to/explanation.jpg">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-button w-full md:w-auto px-8 py-3 text-lg">
+                            <span class="material-symbols-outlined">add_circle</span> 新增題目
+                        </button>
+                    </form>
+                </div>
+            </div>
+        `;
     }
 
     // 5. Student Analytics
@@ -3137,6 +3360,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const navSubjectMgmt = container.querySelector("#nav-subject-management");
       const navQuestionEdit = container.querySelector("#nav-question-editing");
       const navBulkUpload = container.querySelector("#nav-bulk-upload");
+      const navManualAdd = container.querySelector("#nav-manual-add"); // Added for manual add question
       const navStudentAnalytics = container.querySelector(
         "#nav-student-analytics"
       );
@@ -3170,6 +3394,14 @@ window.addEventListener("DOMContentLoaded", () => {
           e.preventDefault();
           closeMobileMenu();
           setState({ currentView: "bulk-upload" });
+        };
+      }
+      // New manual add question listener
+      if (navManualAdd) {
+        navManualAdd.onclick = (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          setState({ currentView: "manual-add-question" });
         };
       }
       if (navStudentAnalytics) {
