@@ -2679,7 +2679,7 @@ window.addEventListener("DOMContentLoaded", () => {
                             <button class="review-button" data-exam-id="${
                               h.id
                             }">查看</button>
-                            <button class="action-btn delete delete-history-btn" data-history-id="${
+                            <button class="action-btn delete delete-history-btn" onclick="window.handleDeleteExamHistory('${h.id}')" data-history-id="${
                               h.id
                             }">&times;</button>
                         </div>
@@ -3913,9 +3913,7 @@ window.addEventListener("DOMContentLoaded", () => {
       };
     });
 
-    document.querySelectorAll(".delete-history-btn").forEach((btn) => {
-      btn.onclick = () => window.handleDeleteExamHistory(btn.dataset.historyId);
-    });
+
 
     document.querySelectorAll(".delete-bookmark-btn").forEach((btn) => {
       btn.onclick = (e) => {
@@ -4312,7 +4310,6 @@ window.addEventListener("DOMContentLoaded", () => {
             selectedStudentAnalyticsData: {
               ...userData,
               bookmarkedQuestions: bookmarks, // Bookmarks remain one-off for now
-              ...currentAnalyticsData, // Keep other fields stable
               examHistory: examHistory, // Update history from listener
               radarChartData: radarData,
             },
