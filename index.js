@@ -78,6 +78,11 @@ window.addEventListener("DOMContentLoaded", () => {
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   }
 
+  function sanitizeImagePath(path) {
+    if (!path) return null;
+    return path.trim().replace(/\\/g, "/");
+  }
+
   // Unify Radar Chart Calculation Logic
   function calculateRadarData(examHistory) {
     if (!examHistory || examHistory.length === 0) return [];
@@ -409,14 +414,14 @@ window.addEventListener("DOMContentLoaded", () => {
         form.option4.value,
       ],
       optionImages: [
-        form.option1_img.value.trim() || null,
-        form.option2_img.value.trim() || null,
-        form.option3_img.value.trim() || null,
-        form.option4_img.value.trim() || null,
+        sanitizeImagePath(form.option1_img.value),
+        sanitizeImagePath(form.option2_img.value),
+        sanitizeImagePath(form.option3_img.value),
+        sanitizeImagePath(form.option4_img.value),
       ],
       answer: form.answer.value,
       explanation: form.explanation.value,
-      imgurl: form.imgurl.value.trim() || null,
+      imgurl: sanitizeImagePath(form.imgurl.value),
     };
 
     try {
@@ -558,10 +563,10 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     const optionImages = [
-        form.option1_img.value.trim() || null,
-        form.option2_img.value.trim() || null,
-        form.option3_img.value.trim() || null,
-        form.option4_img.value.trim() || null,
+        sanitizeImagePath(form.option1_img.value),
+        sanitizeImagePath(form.option2_img.value),
+        sanitizeImagePath(form.option3_img.value),
+        sanitizeImagePath(form.option4_img.value),
     ];
 
     const answerVal = form.answer.value; // "A", "B", "C", "D"
@@ -573,12 +578,12 @@ window.addEventListener("DOMContentLoaded", () => {
         subject: state.selectedManualSubject,
         category: state.selectedManualCategory,
         text: questionText,
-        imgurl: form.imgurl.value.trim() || null,
+        imgurl: sanitizeImagePath(form.imgurl.value),
         options: options,
         optionImages: optionImages,
         answer: correctOptionText,
         explanation: form.explanation.value.trim() || null,
-        explanationImage: form.explanationImage.value.trim() || null,
+        explanationImage: sanitizeImagePath(form.explanationImage.value),
         createdAt: new Date().toISOString(),
     };
 
@@ -787,8 +792,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     questionBlocks.forEach((block) => {
       const text = block.querySelector('textarea[name="questionText"]').value;
-      const image =
-        block.querySelector('input[name="imageUrl"]').value.trim() || null;
+      const image = sanitizeImagePath(block.querySelector('input[name="imageUrl"]').value);
       const score =
         parseInt(block.querySelector('input[name="maxScore"]').value, 10) || 0;
       if (text) {
@@ -977,7 +981,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const form = e.target;
     const score = parseInt(form.score.value, 10);
     const feedback = form.feedback.value;
-    const feedbackImageUrl = form.feedbackImageUrl.value.trim() || null;
+    const feedbackImageUrl = sanitizeImagePath(form.feedbackImageUrl.value);
     const submissionId = state.gradingSubmission.id;
 
     try {
