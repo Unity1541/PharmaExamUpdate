@@ -2197,23 +2197,68 @@ window.addEventListener("DOMContentLoaded", () => {
           const userAnsText =
             userAnsIndex !== undefined ? q.options[userAnsIndex] : "未作答";
           const isCorrect = userAnsText === correctText;
+          
+          // Check if this question is bookmarked
+          const isBookmarked = state.currentUser?.bookmarkedQuestions?.some(
+            (bq) => bq.id === q.id
+          );
+
+          // Generate options HTML with highlighting
+          const optionsHTML = q.options.map((opt, optIdx) => {
+            const optionLetter = ["A", "B", "C", "D"][optIdx];
+            const isUserAnswer = userAnsIndex === optIdx;
+            const isCorrectOption = opt === correctText;
+            
+            let optionClass = "review-option";
+            if (isCorrectOption) optionClass += " correct";
+            if (isUserAnswer && !isCorrectOption) optionClass += " incorrect";
+            
+            // Option image if exists
+            const optImg = q.optionImages && q.optionImages[optIdx]
+              ? `<img src="${q.optionImages[optIdx]}" class="option-image" style="max-width:100%; margin-top:8px; border-radius:4px;">`
+              : "";
+            
+            return `
+              <li class="${optionClass}">
+                <div class="option-letter">${optionLetter}</div>
+                <div class="option-content">
+                  <div class="option-text">${opt}</div>
+                  ${optImg}
+                </div>
+                ${isUserAnswer ? '<span class="user-answer-badge">您的選擇</span>' : ''}
+                ${isCorrectOption ? '<span class="correct-answer-badge">✓ 正解</span>' : ''}
+              </li>
+            `;
+          }).join("");
 
           return `
                     <div class="review-question-card">
-                        <div class="review-question-text"><span style="font-weight:bold; margin-right:8px;">${
-                          idx + 1
-                        }.</span> ${q.text}</div>
+                        <div class="review-question-header">
+                            <div class="review-question-text"><span style="font-weight:bold; margin-right:8px;">${
+                              idx + 1
+                            }.</span> ${q.text}</div>
+                            <button class="bookmark-btn ${isBookmarked ? 'active' : ''}" 
+                                    onclick="handleReviewBookmarkToggle('${q.id}')" 
+                                    title="${isBookmarked ? '取消收藏' : '收藏題目'}">
+                                ${isBookmarked ? icons.bookmarkSolid : icons.bookmark}
+                            </button>
+                        </div>
                         ${
                           q.imgurl
                             ? `<img src="${q.imgurl}" class="question-image" style="max-height:200px;">`
                             : ""
                         }
                         
-                        <div class="review-summary">
-                            <div>您的答案: <span class="summary-answer ${
-                              isCorrect ? "correct-text" : "incorrect-text"
-                            }">${userAnsText}</span></div>
-                            <div>正確答案: <span class="summary-answer correct-text">${correctText}</span></div>
+                        <ul class="review-options-list">
+                            ${optionsHTML}
+                        </ul>
+                        
+                        <div class="review-result-summary">
+                            <div class="result-item ${isCorrect ? 'correct' : 'incorrect'}">
+                                <span class="result-label">您的答案:</span>
+                                <span class="result-value">${userAnsText}</span>
+                                ${isCorrect ? '<span class="result-icon">✓</span>' : '<span class="result-icon">✗</span>'}
+                            </div>
                         </div>
                         
                         <div class="explanation-box">

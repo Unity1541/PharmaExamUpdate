@@ -1934,6 +1934,21 @@ body {
   padding: 20px;
   margin-bottom: 16px;
 }
+.review-question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.review-question-header .review-question-text {
+  flex: 1;
+  margin-bottom: 0;
+}
+.review-question-header .bookmark-btn {
+  flex-shrink: 0;
+  margin-top: -4px;
+}
 .review-question-text {
   font-size: 16px;
   line-height: 1.6;
@@ -3067,5 +3082,314 @@ body {
 @supports (-webkit-touch-callout: none) {
     .luxury-input {
         font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+/* ============================================
+   EXAM REVIEW MODAL STYLES
+   Enhanced display with full options list
+   ============================================ */
+
+/* Review Question Card */
+.review-question-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border-color);
+}
+
+.review-question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.review-question-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-color);
+    line-height: 1.6;
+    flex: 1;
+}
+
+/* Review Options List */
+.review-options-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.review-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.review-option .option-letter {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    background: #e2e8f0;
+    color: #64748b;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.review-option .option-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.review-option .option-text {
+    font-size: 15px;
+    color: var(--text-color);
+    line-height: 1.5;
+}
+
+/* Correct Option Styling */
+.review-option.correct {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-color: #10b981;
+}
+
+.review-option.correct .option-letter {
+    background: #10b981;
+    color: white;
+}
+
+/* Incorrect User Answer Styling */
+.review-option.incorrect {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-color: #ef4444;
+}
+
+.review-option.incorrect .option-letter {
+    background: #ef4444;
+    color: white;
+}
+
+/* Answer Badges */
+.user-answer-badge,
+.correct-answer-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.user-answer-badge {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.review-option.incorrect .user-answer-badge {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.correct-answer-badge {
+    background: #d1fae5;
+    color: #047857;
+    border: 1px solid #6ee7b7;
+}
+
+/* Review Result Summary */
+.review-result-summary {
+    margin: 16px 0;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border-left: 4px solid #94a3b8;
+}
+
+.review-result-summary .result-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.review-result-summary .result-item.correct {
+    border-left-color: #10b981;
+}
+
+.review-result-summary .result-item.incorrect {
+    border-left-color: #ef4444;
+}
+
+.review-result-summary .result-label {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.review-result-summary .result-value {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.review-result-summary .result-icon {
+    font-size: 18px;
+    font-weight: 700;
+    margin-left: auto;
+}
+
+.review-result-summary .result-item.correct .result-icon {
+    color: #10b981;
+}
+
+.review-result-summary .result-item.incorrect .result-icon {
+    color: #ef4444;
+}
+
+/* Explanation Box Enhancement */
+.explanation-box {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-radius: 12px;
+    padding: 16px 20px;
+    border-left: 4px solid #f59e0b;
+    margin-top: 16px;
+}
+
+.explanation-box h5 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #92400e;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.explanation-box p {
+    font-size: 14px;
+    color: #78350f;
+    line-height: 1.7;
+    margin: 0;
+}
+
+/* Modal Content Enhancement */
+.modal-content {
+    max-width: 800px;
+    max-height: 85vh;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 20px 24px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.modal-close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    max-height: calc(85vh - 70px);
+    background: #f8fafc;
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+/* Mobile Responsive for Review Modal */
+@media screen and (max-width: 768px) {
+    .modal-content {
+        max-height: 95vh;
+        border-radius: 16px;
+    }
+    
+    .modal-body {
+        padding: 16px;
+        max-height: calc(95vh - 60px);
+    }
+    
+    .review-question-card {
+        padding: 16px;
+        border-radius: 12px;
+    }
+    
+    .review-question-text {
+        font-size: 14px;
+    }
+    
+    .review-option {
+        padding: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .review-option .option-letter {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        font-size: 12px;
+    }
+    
+    .user-answer-badge,
+    .correct-answer-badge {
+        font-size: 10px;
+        padding: 3px 8px;
     }
 }
