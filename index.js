@@ -822,11 +822,14 @@ window.addEventListener("DOMContentLoaded", () => {
     let totalMaxScore = 0;
 
     questionBlocks.forEach((block) => {
-      const text = block.querySelector('textarea[name="questionText"]').value;
+      // Support for both legacy textarea and new rich-text editor
+      const textarea = block.querySelector('textarea[name="questionText"]');
+      const richEditor = block.querySelector('.assignment-question-editor');
+      const text = textarea ? textarea.value : (richEditor ? richEditor.innerHTML.trim() : '');
       const image = sanitizeImagePath(block.querySelector('input[name="imageUrl"]').value);
       const score =
         parseInt(block.querySelector('input[name="maxScore"]').value, 10) || 0;
-      if (text) {
+      if (text && text !== '') {
         questions.push({ text, image, score });
         totalMaxScore += score;
       }
@@ -4221,6 +4224,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!container) return;
 
     const count = container.children.length + 1;
+    const uniqueEditorId = `assignment-editor-${count}-${Date.now()}`;
     const div = document.createElement("div");
     div.className = "question-block";
     div.innerHTML = `
@@ -4230,7 +4234,40 @@ window.addEventListener("DOMContentLoaded", () => {
             </div>
             <div class="form-group">
                 <label>題目敘述</label>
-                <textarea name="questionText" rows="3" required placeholder="請輸入第 ${count} 題題目..."></textarea>
+                <!-- 編輯器工具列 -->
+                <div class="editor-toolbar">
+                    <div class="toolbar-group">
+                        <span class="toolbar-label">格式</span>
+                        <button type="button" class="toolbar-btn" onclick="window.execCmd('bold', '${uniqueEditorId}')" title="粗體">B</button>
+                        <button type="button" class="toolbar-btn" onclick="window.execCmd('italic', '${uniqueEditorId}')" title="斜體">I</button>
+                        <button type="button" class="toolbar-btn" onclick="window.execCmd('underline', '${uniqueEditorId}')" title="底線">U</button>
+                    </div>
+                    <div class="toolbar-group">
+                        <span class="toolbar-label">上下標</span>
+                        <button type="button" class="toolbar-btn" onclick="window.execCmd('subscript', '${uniqueEditorId}')">X<span class="sub">2</span></button>
+                        <button type="button" class="toolbar-btn" onclick="window.execCmd('superscript', '${uniqueEditorId}')">X<span class="sup">2</span></button>
+                    </div>
+                </div>
+                <!-- 富文本編輯區域 -->
+                <div 
+                    class="editor-area assignment-question-editor" 
+                    contenteditable="true" 
+                    id="${uniqueEditorId}"
+                    data-placeholder="請輸入第 ${count} 題題目..."
+                    style="min-height: 80px;"
+                ></div>
+                <!-- 快捷插入 -->
+                <div class="quick-insert" style="margin-top:8px; padding:8px;">
+                    <div class="quick-symbols">
+                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('⟶', '${uniqueEditorId}')">⟶</button>
+                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('→', '${uniqueEditorId}')">→</button>
+                        <button type="button" class="symbol-btn" onclick="window.insertHtmlAtCursor('<sup>⋅</sup>&frasl;<sub>⋅</sub>', '${uniqueEditorId}')" title="分數"><sup>a</sup>&frasl;<sub>b</sub></button>
+                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('H₂O', '${uniqueEditorId}')">H₂O</button>
+                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('CO₂', '${uniqueEditorId}')">CO₂</button>
+                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('Δ', '${uniqueEditorId}')">Δ</button>
+                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('°C', '${uniqueEditorId}')">°C</button>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label>題目圖片路徑 (選填)</label>
