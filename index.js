@@ -81,6 +81,8 @@ window.addEventListener("DOMContentLoaded", () => {
     assignmentSubmissions: [], // Submissions loaded for admin
     submissionDraft: null, // Current draft for student
     gradingSubmission: null, // The submission being graded by admin
+    assignmentTimeLeft: null, // Remaining time in seconds for current assignment
+    assignmentTimerInterval: null, // Timer interval ID
     // Bulletin Board State
     announcements: [],
     editingAnnouncement: null,
@@ -847,6 +849,7 @@ window.addEventListener("DOMContentLoaded", () => {
       category: form.category.value || null, // Capture category
       questions: questions, // Store array of questions
       maxScore: totalMaxScore,
+      timeLimit: parseInt(form.timeLimit?.value, 10) || 0, // Time limit in minutes (0 = no limit)
       createdAt: new Date().toISOString(),
     };
 
@@ -1014,7 +1017,9 @@ window.addEventListener("DOMContentLoaded", () => {
     setLoading(true);
     const form = e.target;
     const score = parseInt(form.score.value, 10);
-    const feedback = form.feedback.value;
+    // Read from rich text editor instead of textarea
+    const feedbackEditor = document.getElementById('feedback-editor');
+    const feedback = feedbackEditor ? feedbackEditor.innerHTML : '';
     const feedbackImageUrl = sanitizeImagePath(form.feedbackImageUrl.value);
     const submissionId = state.gradingSubmission.id;
 
@@ -3050,9 +3055,20 @@ window.addEventListener("DOMContentLoaded", () => {
                         <h1 class="page-title">手寫作業區</h1>
                         <p class="page-subtitle">${a.subject} | ${a.title}</p>
                     </div>
-                    <button class="back-button" onclick="window.goBackToAssignments()">${
-                      icons.arrowLeft
-                    } 返回列表</button>
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        ${state.assignmentTimeLeft !== null && !isSubmitted ? `
+                        <div id="assignment-timer" class="assignment-timer${state.assignmentTimeLeft <= 60 ? ' warning' : ''}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                            <span id="assignment-timer-span">${formatTime(state.assignmentTimeLeft)}</span>
+                        </div>
+                        ` : ''}
+                        <button class="back-button" onclick="window.goBackToAssignments()">${
+                          icons.arrowLeft
+                        } 返回列表</button>
+                    </div>
                 </header>
                 
                 <div style="flex-grow: 1; overflow-y: auto; padding-bottom: 40px; padding-left: 48px; padding-right: 48px;">
@@ -3077,9 +3093,9 @@ window.addEventListener("DOMContentLoaded", () => {
                               sub.score
                             } / ${a.maxScore}</h3>
                             <p style="margin-top:8px;"><strong>老師評語：</strong></p>
-                            <p style="white-space: pre-wrap; color: var(--text-color); margin-bottom:16px;">${
+                            <div style="color: var(--text-color); margin-bottom:16px; line-height: 1.6;">${
                               sub.feedback
-                            }</p>
+                            }</div>
                             ${
                               sub.feedbackImageUrl
                                 ? `
@@ -3124,7 +3140,7 @@ window.addEventListener("DOMContentLoaded", () => {
                           a.subject
                         } ${a.category ? ` - ${a.category}` : ""} | 配分: ${
             a.maxScore
-          }</p>
+          } | 時限: ${a.timeLimit ? a.timeLimit + '分鐘' : '無限制'}</p>
                     </div>
                      <div class="actions">
                         <button class="action-btn" title="查看提交" onclick="window.openAdminGradeList('${
@@ -3169,6 +3185,11 @@ window.addEventListener("DOMContentLoaded", () => {
                                     <select name="category" id="assignment-category-select" required>
                                         <option value="">請先選擇科目</option>
                                     </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>作答時間限制 (分鐘)</label>
+                                    <input type="number" name="timeLimit" min="0" value="0" placeholder="0 = 無限制">
+                                    <p style="font-size:12px; color:#666; margin-top:4px;">設定 0 表示無時間限制，學生可隨時繳交。</p>
                                 </div>
                                 
                                 <div id="questions-container">
@@ -3310,9 +3331,37 @@ window.addEventListener("DOMContentLoaded", () => {
                                 </div>
                                 <div class="form-group">
                                     <label>評語</label>
-                                    <textarea name="feedback" rows="6">${
-                                      sub.feedback || ""
-                                    }</textarea>
+                                    <div class="editor-toolbar" style="margin-top: 8px;">
+                                        <div class="toolbar-group">
+                                            <span class="toolbar-label">格式</span>
+                                            <button type="button" class="toolbar-btn" onclick="window.execCmd('bold', 'feedback-editor')" title="粗體">B</button>
+                                            <button type="button" class="toolbar-btn" onclick="window.execCmd('italic', 'feedback-editor')" title="斜體">I</button>
+                                            <button type="button" class="toolbar-btn" onclick="window.execCmd('underline', 'feedback-editor')" title="底線">U</button>
+                                        </div>
+                                        <div class="toolbar-group">
+                                            <span class="toolbar-label">字體</span>
+                                            <select class="font-size-select" onchange="window.execFontSize(this.value, 'feedback-editor')" title="字體大小">
+                                                <option value="">大小</option>
+                                                <option value="12px">12px</option>
+                                                <option value="14px">14px</option>
+                                                <option value="16px">16px</option>
+                                                <option value="18px">18px</option>
+                                                <option value="20px">20px</option>
+                                                <option value="24px">24px</option>
+                                            </select>
+                                            <div class="color-picker-wrapper">
+                                                <button type="button" class="color-picker-btn" style="background-color: #dc2626;" title="文字顏色"></button>
+                                                <input type="color" class="color-picker-input" value="#dc2626" onchange="window.handleColorChange(this, 'feedback-editor')">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div 
+                                        class="editor-area" 
+                                        contenteditable="true" 
+                                        id="feedback-editor"
+                                        data-placeholder="請輸入評語..."
+                                        style="min-height: 120px;"
+                                    >${sub.feedback || ""}</div>
                                 </div>
                                 <div class="form-group">
                                     <label>批改圖片路徑 (選填)</label>
@@ -4068,12 +4117,19 @@ window.addEventListener("DOMContentLoaded", () => {
   window.closeBookmarkModal = () => setState({ viewingBookmark: null });
 
   // Handwritten Assignment Globals
-  window.goBackToAssignments = () =>
+  window.goBackToAssignments = () => {
+    // Clear any running timer when leaving assignment
+    if (state.assignmentTimerInterval) {
+      clearInterval(state.assignmentTimerInterval);
+    }
     setState({
       currentView: "handwritten-assignments",
       currentAssignment: null,
       submissionDraft: null,
+      assignmentTimeLeft: null,
+      assignmentTimerInterval: null,
     });
+  };
   window.openAssignment = async (assignmentId) => {
     setLoading(true);
     try {
@@ -4092,10 +4148,56 @@ window.addEventListener("DOMContentLoaded", () => {
         draft = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
       }
 
+      // Clear any existing timer
+      if (state.assignmentTimerInterval) {
+        clearInterval(state.assignmentTimerInterval);
+      }
+
+      // Check if already submitted - don't start timer
+      const isSubmitted = draft && (draft.status === "submitted" || draft.status === "graded");
+      
+      // Initialize timer if time limit is set and not already submitted
+      let timerInterval = null;
+      let timeLeft = null;
+      
+      if (assignment.timeLimit && assignment.timeLimit > 0 && !isSubmitted) {
+        timeLeft = assignment.timeLimit * 60; // Convert minutes to seconds
+        
+        timerInterval = setInterval(() => {
+          if (!state.assignmentTimeLeft || state.assignmentTimeLeft <= 0) return;
+          
+          state.assignmentTimeLeft -= 1;
+          
+          // Update timer display directly without full re-render
+          const timerDisplay = document.getElementById("assignment-timer-span");
+          if (timerDisplay) {
+            timerDisplay.textContent = formatTime(state.assignmentTimeLeft);
+            // Add warning class when less than 1 minute
+            const timerContainer = document.getElementById("assignment-timer");
+            if (timerContainer) {
+              if (state.assignmentTimeLeft <= 60) {
+                timerContainer.classList.add("warning");
+              } else {
+                timerContainer.classList.remove("warning");
+              }
+            }
+          }
+          
+          // Auto-submit when time runs out
+          if (state.assignmentTimeLeft <= 0) {
+            clearInterval(state.assignmentTimerInterval);
+            alert("作答時間已到，系統將自動繳交您的作業！");
+            window.handleAssignmentSubmit("submitted");
+          }
+        }, 1000);
+      }
+
       setState({
         currentView: "do-assignment",
         currentAssignment: assignment,
         submissionDraft: draft,
+        assignmentTimeLeft: timeLeft,
+        assignmentTimerInterval: timerInterval,
       });
     } catch (e) {
       alert(e.message);
@@ -4111,6 +4213,37 @@ window.addEventListener("DOMContentLoaded", () => {
       const el = document.getElementById(targetId);
       if (el) el.focus();
     }
+  };
+
+  // Font size control function
+  window.execFontSize = (size, targetId) => {
+    // Use fontSize command with value 7, then replace with actual size
+    document.execCommand('fontSize', false, '7');
+    const editor = targetId ? document.getElementById(targetId) : document;
+    if (editor) {
+      const fonts = editor.querySelectorAll('font[size="7"]');
+      fonts.forEach(f => {
+        f.removeAttribute('size');
+        f.style.fontSize = size;
+      });
+      if (targetId) document.getElementById(targetId)?.focus();
+    }
+  };
+
+  // Font color control function  
+  window.execFontColor = (color, targetId) => {
+    document.execCommand('foreColor', false, color);
+    if (targetId) {
+      document.getElementById(targetId)?.focus();
+    }
+  };
+
+  // Handle color picker change
+  window.handleColorChange = (input, targetId) => {
+    window.execFontColor(input.value, targetId);
+    // Update the button color preview
+    const btn = input.previousElementSibling;
+    if (btn) btn.style.backgroundColor = input.value;
   };
 
   // Updated insertSymbol to accept target ID
@@ -4291,6 +4424,23 @@ window.addEventListener("DOMContentLoaded", () => {
                         <span class="toolbar-label">上下標</span>
                         <button type="button" class="toolbar-btn" onclick="window.execCmd('subscript', '${uniqueEditorId}')">X<span class="sub">2</span></button>
                         <button type="button" class="toolbar-btn" onclick="window.execCmd('superscript', '${uniqueEditorId}')">X<span class="sup">2</span></button>
+                    </div>
+                    <div class="toolbar-group">
+                        <span class="toolbar-label">字體</span>
+                        <select class="font-size-select" onchange="window.execFontSize(this.value, '${uniqueEditorId}')" title="字體大小">
+                            <option value="">大小</option>
+                            <option value="12px">12px</option>
+                            <option value="14px">14px</option>
+                            <option value="16px">16px</option>
+                            <option value="18px">18px</option>
+                            <option value="20px">20px</option>
+                            <option value="24px">24px</option>
+                            <option value="28px">28px</option>
+                        </select>
+                        <div class="color-picker-wrapper">
+                            <button type="button" class="color-picker-btn" style="background-color: #333333;" title="文字顏色"></button>
+                            <input type="color" class="color-picker-input" value="#333333" onchange="window.handleColorChange(this, '${uniqueEditorId}')">
+                        </div>
                     </div>
                 </div>
                 <!-- 富文本編輯區域 -->

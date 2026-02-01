@@ -2508,6 +2508,83 @@ body {
   border-radius: 8px;
 }
 
+/* Assignment Timer Styles */
+.assignment-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 999px;
+  font-weight: 600;
+  color: #92400e;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.assignment-timer.warning {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #b91c1c;
+  animation: pulse-timer 1s infinite;
+}
+
+@keyframes pulse-timer {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.9; }
+}
+
+/* Font Size Selector */
+.font-size-select {
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 12px;
+  background: var(--card-bg);
+  cursor: pointer;
+  color: var(--text-color);
+  transition: border-color 0.2s;
+}
+
+.font-size-select:hover {
+  border-color: var(--primary-color);
+}
+
+.font-size-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Color Picker */
+.color-picker-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.color-picker-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.15s;
+  padding: 0;
+}
+
+.color-picker-btn:hover {
+  transform: scale(1.1);
+  border-color: var(--text-light);
+}
+
+.color-picker-input {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  opacity: 0;
+  cursor: pointer;
+}
+
 /* --- SPLIT PANE ASSIGNMENT LAYOUT --- */
 .assignment-view-container {
   display: flex;
