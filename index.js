@@ -439,13 +439,21 @@ window.addEventListener("DOMContentLoaded", () => {
     const form = e.target;
     const q = state.editingQuestion;
 
+    // Get rich text content from contenteditable editors
+    const questionTextEditor = document.getElementById('edit-question-text-editor');
+    const option1Editor = document.getElementById('edit-option1-editor');
+    const option2Editor = document.getElementById('edit-option2-editor');
+    const option3Editor = document.getElementById('edit-option3-editor');
+    const option4Editor = document.getElementById('edit-option4-editor');
+    const explanationEditor = document.getElementById('edit-explanation-editor');
+
     const updatedData = {
-      text: form.questionText.value,
+      text: questionTextEditor ? questionTextEditor.innerHTML.trim() : form.questionText?.value || '',
       options: [
-        form.option1.value,
-        form.option2.value,
-        form.option3.value,
-        form.option4.value,
+        option1Editor ? option1Editor.innerHTML.trim() : '',
+        option2Editor ? option2Editor.innerHTML.trim() : '',
+        option3Editor ? option3Editor.innerHTML.trim() : '',
+        option4Editor ? option4Editor.innerHTML.trim() : '',
       ],
       optionImages: [
         sanitizeImagePath(form.option1_img.value),
@@ -454,7 +462,7 @@ window.addEventListener("DOMContentLoaded", () => {
         sanitizeImagePath(form.option4_img.value),
       ],
       answer: form.answer.value,
-      explanation: form.explanation.value,
+      explanation: explanationEditor ? explanationEditor.innerHTML.trim() : form.explanation?.value || '',
       imgurl: sanitizeImagePath(form.imgurl.value),
     };
 
@@ -3403,6 +3411,11 @@ window.addEventListener("DOMContentLoaded", () => {
                                             <button type="button" class="toolbar-btn" onclick="window.execCmd('underline', 'feedback-editor')" title="底線">U</button>
                                         </div>
                                         <div class="toolbar-group">
+                                            <span class="toolbar-label">上下標</span>
+                                            <button type="button" class="toolbar-btn" onclick="window.execCmd('subscript', 'feedback-editor')" title="下標">X<span style="font-size: 9px; vertical-align: sub;">2</span></button>
+                                            <button type="button" class="toolbar-btn" onclick="window.execCmd('superscript', 'feedback-editor')" title="上標">X<span style="font-size: 9px; vertical-align: super;">2</span></button>
+                                        </div>
+                                        <div class="toolbar-group">
                                             <span class="toolbar-label">字體</span>
                                             <select class="font-size-select" onchange="window.execFontSize(this.value, 'feedback-editor')" title="字體大小">
                                                 <option value="">大小</option>
@@ -3737,44 +3750,98 @@ window.addEventListener("DOMContentLoaded", () => {
         q.optionImages && q.optionImages.length === 4
           ? q.optionImages
           : [null, null, null, null];
+      
+      // Helper function to create mini toolbar for editors
+      const createMiniToolbar = (editorId) => `
+        <div class="edit-question-toolbar" style="display: flex; gap: 4px; margin-bottom: 4px;">
+          <button type="button" class="toolbar-btn" onclick="window.execCmd('subscript', '${editorId}')" title="下標" style="padding: 2px 6px; font-size: 12px;">X<span style="font-size: 9px; vertical-align: sub;">2</span></button>
+          <button type="button" class="toolbar-btn" onclick="window.execCmd('superscript', '${editorId}')" title="上標" style="padding: 2px 6px; font-size: 12px;">X<span style="font-size: 9px; vertical-align: super;">2</span></button>
+        </div>
+      `;
+      
       modalHTML = `
                 <div class="modal-backdrop">
-                    <div class="modal-content" style="height: auto; max-height: 90vh;">
+                    <div class="modal-content" style="height: auto; max-height: 90vh; width: 700px;">
                         <div class="modal-header"><h3>編輯題目</h3><button class="modal-close-btn" onclick="window.closeEditModal()">×</button></div>
                         <div class="modal-body">
                             <form id="edit-question-form" class="admin-form">
-                                <div class="form-group"><label>題目敘述</label><textarea name="questionText" rows="3" required>${
-                                  q.text
-                                }</textarea></div>
+                                <div class="form-group">
+                                    <label>題目敘述</label>
+                                    ${createMiniToolbar('edit-question-text-editor')}
+                                    <div 
+                                        class="editor-area" 
+                                        contenteditable="true" 
+                                        id="edit-question-text-editor"
+                                        style="min-height: 60px; border: 1px solid #ddd; border-radius: 4px; padding: 8px; background: #fff;"
+                                    >${q.text}</div>
+                                </div>
                                 <div class="form-group"><label>圖片網址 (選填)</label><input type="text" name="imgurl" value="${
                                   q.imgurl || ""
                                 }"></div>
-                                <div class="form-group"><label>選項 1</label><input type="text" name="option1" value="${
-                                  q.options[0]
-                                }" required><input type="text" name="option1_img" placeholder="選項 1 圖片網址 (選填)" value="${
-        optImgs[0] || ""
-      }" class="mt-1"></div>
-                                <div class="form-group"><label>選項 2</label><input type="text" name="option2" value="${
-                                  q.options[1]
-                                }" required><input type="text" name="option2_img" placeholder="選項 2 圖片網址 (選填)" value="${
-        optImgs[1] || ""
-      }" class="mt-1"></div>
-                                <div class="form-group"><label>選項 3</label><input type="text" name="option3" value="${
-                                  q.options[2]
-                                }" required><input type="text" name="option3_img" placeholder="選項 3 圖片網址 (選填)" value="${
-        optImgs[2] || ""
-      }" class="mt-1"></div>
-                                <div class="form-group"><label>選項 4</label><input type="text" name="option4" value="${
-                                  q.options[3]
-                                }" required><input type="text" name="option4_img" placeholder="選項 4 圖片網址 (選填)" value="${
-        optImgs[3] || ""
-      }" class="mt-1"></div>
+                                
+                                <div class="form-group">
+                                    <label>選項 1</label>
+                                    ${createMiniToolbar('edit-option1-editor')}
+                                    <div 
+                                        class="editor-area" 
+                                        contenteditable="true" 
+                                        id="edit-option1-editor"
+                                        style="min-height: 36px; border: 1px solid #ddd; border-radius: 4px; padding: 8px; background: #fff;"
+                                    >${q.options[0]}</div>
+                                    <input type="text" name="option1_img" placeholder="選項 1 圖片網址 (選填)" value="${optImgs[0] || ""}" class="mt-1">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>選項 2</label>
+                                    ${createMiniToolbar('edit-option2-editor')}
+                                    <div 
+                                        class="editor-area" 
+                                        contenteditable="true" 
+                                        id="edit-option2-editor"
+                                        style="min-height: 36px; border: 1px solid #ddd; border-radius: 4px; padding: 8px; background: #fff;"
+                                    >${q.options[1]}</div>
+                                    <input type="text" name="option2_img" placeholder="選項 2 圖片網址 (選填)" value="${optImgs[1] || ""}" class="mt-1">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>選項 3</label>
+                                    ${createMiniToolbar('edit-option3-editor')}
+                                    <div 
+                                        class="editor-area" 
+                                        contenteditable="true" 
+                                        id="edit-option3-editor"
+                                        style="min-height: 36px; border: 1px solid #ddd; border-radius: 4px; padding: 8px; background: #fff;"
+                                    >${q.options[2]}</div>
+                                    <input type="text" name="option3_img" placeholder="選項 3 圖片網址 (選填)" value="${optImgs[2] || ""}" class="mt-1">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>選項 4</label>
+                                    ${createMiniToolbar('edit-option4-editor')}
+                                    <div 
+                                        class="editor-area" 
+                                        contenteditable="true" 
+                                        id="edit-option4-editor"
+                                        style="min-height: 36px; border: 1px solid #ddd; border-radius: 4px; padding: 8px; background: #fff;"
+                                    >${q.options[3]}</div>
+                                    <input type="text" name="option4_img" placeholder="選項 4 圖片網址 (選填)" value="${optImgs[3] || ""}" class="mt-1">
+                                </div>
+                                
                                 <div class="form-group"><label>正確答案</label><input type="text" name="answer" value="${
                                   q.answer
                                 }" required></div>
-                                <div class="form-group"><label>詳解</label><textarea name="explanation" rows="3" required>${
-                                  q.explanation
-                                }</textarea></div>
+                                
+                                <div class="form-group">
+                                    <label>詳解</label>
+                                    ${createMiniToolbar('edit-explanation-editor')}
+                                    <div 
+                                        class="editor-area" 
+                                        contenteditable="true" 
+                                        id="edit-explanation-editor"
+                                        style="min-height: 60px; border: 1px solid #ddd; border-radius: 4px; padding: 8px; background: #fff;"
+                                    >${q.explanation || ''}</div>
+                                </div>
+                                
                                 <div class="form-group"><label>詳解圖片網址 (選填)</label><input type="text" name="explanationImage" value="${
                                   q.explanationImage || ""
                                 }"></div>
