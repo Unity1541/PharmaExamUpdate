@@ -86,6 +86,7 @@ window.addEventListener("DOMContentLoaded", () => {
     // Bulletin Board State
     announcements: [],
     editingAnnouncement: null,
+    editingAssignment: null, // Assignment being edited by admin
     // Bookmark Filter State
     selectedBookmarkFilterSubject: null,
   };
@@ -887,6 +888,66 @@ window.addEventListener("DOMContentLoaded", () => {
     } catch (e) {
       console.error(e);
       alert("刪除失敗: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleUpdateAssignment(e) {
+    e.preventDefault();
+    setLoading(true);
+    const form = e.target;
+    const assignmentId = form.assignmentId.value;
+
+    // Extract questions from form
+    const questions = [];
+    let totalMaxScore = 0;
+    let idx = 0;
+    
+    while (form[`questionText_${idx}`]) {
+      const text = form[`questionText_${idx}`].value;
+      const image = sanitizeImagePath(form[`imageUrl_${idx}`].value);
+      const score = parseInt(form[`maxScore_${idx}`].value, 10) || 0;
+      
+      if (text && text.trim() !== '') {
+        questions.push({ text, image, score });
+        totalMaxScore += score;
+      }
+      idx++;
+    }
+
+    if (questions.length === 0) {
+      alert("請至少保留一題題目");
+      setLoading(false);
+      return;
+    }
+
+    const updatedData = {
+      title: form.title.value.trim(),
+      subject: form.subject.value,
+      category: form.category.value || null,
+      questions: questions,
+      maxScore: totalMaxScore,
+      timeLimit: parseInt(form.timeLimit?.value, 10) || 0,
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      await updateDoc(doc(db, "assignments", assignmentId), updatedData);
+      
+      // Update local state
+      const updatedAssignments = state.assignments.map(a => 
+        a.id === assignmentId ? { ...a, ...updatedData } : a
+      );
+      
+      setState({
+        assignments: updatedAssignments,
+        editingAssignment: null,
+      });
+      alert("作業更新成功！");
+    } catch (error) {
+      console.error("Error updating assignment:", error);
+      alert("更新失敗: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -3146,6 +3207,9 @@ window.addEventListener("DOMContentLoaded", () => {
                         <button class="action-btn" title="查看提交" onclick="window.openAdminGradeList('${
                           a.id
                         }')">${icons.users}</button>
+                        <button class="action-btn" title="編輯作業" onclick="window.openEditAssignmentModal('${
+                          a.id
+                        }')">${icons.edit}</button>
                         <button class="action-btn delete" title="刪除作業" onclick="window.handleDeleteAssignment('${
                           a.id
                         }')">${icons.delete}</button>
@@ -3797,12 +3861,90 @@ window.addEventListener("DOMContentLoaded", () => {
                  </div>
             </div>
         `;
+    } else if (state.editingAssignment) {
+        // Assignment Editing Modal
+        const a = state.editingAssignment;
+        const questionsHTML = a.questions.map((q, idx) => `
+            <div class="question-block" data-question-index="${idx}">
+                <div class="question-block-header">
+                    <span>題目 ${idx + 1}</span>
+                </div>
+                <div class="form-group">
+                    <label>題目敘述</label>
+                    <textarea name="questionText_${idx}" rows="3" required>${q.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>題目圖片路徑 (選填)</label>
+                    <input type="text" name="imageUrl_${idx}" value="${q.image || ''}">
+                </div>
+                <div class="form-group">
+                    <label>本題配分</label>
+                    <input type="number" name="maxScore_${idx}" value="${q.score}" required>
+                </div>
+            </div>
+        `).join('');
+        
+        // Build category options based on selected subject
+        const currentSubject = a.subject;
+        const subjectCategories = state.categories[currentSubject] || [];
+        const categoryOptions = subjectCategories.map(c => 
+            `<option value="${c.name}" ${c.name === a.category ? 'selected' : ''}>${c.name}</option>`
+        ).join('');
+        
+        modalHTML = `
+            <div class="modal-backdrop">
+                <div class="modal-content" style="height: auto; max-height: 90vh; width: 90%; max-width: 700px;">
+                    <div class="modal-header">
+                        <h3>編輯作業</h3>
+                        <button class="modal-close-btn" onclick="window.closeEditAssignmentModal()">×</button>
+                    </div>
+                    <div class="modal-body" style="overflow-y: auto; max-height: calc(90vh - 60px);">
+                        <form id="edit-assignment-form" class="admin-form">
+                            <input type="hidden" name="assignmentId" value="${a.id}">
+                            <div class="form-group">
+                                <label>標題</label>
+                                <input type="text" name="title" value="${a.title}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>科目</label>
+                                <select name="subject" required onchange="window.updateEditAssignmentCategoryOptions(this.value)">
+                                    <option value="">請選擇科目</option>
+                                    ${state.subjects.map(s => 
+                                        `<option value="${s.name}" ${s.name === a.subject ? 'selected' : ''}>${s.name}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>類別</label>
+                                <select name="category" id="edit-assignment-category-select" required>
+                                    ${categoryOptions || '<option value="">請先選擇科目</option>'}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>作答時間限制 (分鐘)</label>
+                                <input type="number" name="timeLimit" min="0" value="${a.timeLimit || 0}">
+                                <p style="font-size:12px; color:#666; margin-top:4px;">設定 0 表示無時間限制</p>
+                            </div>
+                            
+                            <h4 style="margin-top: 16px; margin-bottom: 12px;">題目內容</h4>
+                            ${questionsHTML}
+                            
+                            <button type="submit" class="submit-button">儲存變更</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     modalContainer.innerHTML = modalHTML;
     
     // Bind Bulletin Form
     const bulletinForm = document.getElementById("bulletin-form");
     if (bulletinForm) bulletinForm.onsubmit = handleAddAnnouncement;
+
+    // Bind Edit Assignment Form
+    const editAssignmentForm = document.getElementById("edit-assignment-form");
+    if (editAssignmentForm) editAssignmentForm.onsubmit = handleUpdateAssignment;
 
     // Login View
     if (!state.isLoggedIn) {
@@ -4206,12 +4348,39 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // Updated execCmd to accept target ID
+  // Updated execCmd to accept target ID - Fixed for subscript/superscript toggle
   window.execCmd = (cmd, targetId) => {
+    // Get target editor element first
+    const editor = targetId ? document.getElementById(targetId) : null;
+    
+    // Save current selection
+    const selection = window.getSelection();
+    let savedRange = null;
+    
+    if (selection.rangeCount > 0) {
+      savedRange = selection.getRangeAt(0).cloneRange();
+    }
+    
+    // Focus editor before executing command (important for Firefox/Safari)
+    if (editor) {
+      editor.focus();
+    }
+    
+    // Restore selection if it was lost during focus
+    if (savedRange && selection.rangeCount === 0) {
+      selection.removeAllRanges();
+      selection.addRange(savedRange);
+    }
+    
+    // Execute the command
     document.execCommand(cmd, false, null);
-    if (targetId) {
-      const el = document.getElementById(targetId);
-      if (el) el.focus();
+    
+    // For subscript/superscript, ensure proper toggle by re-focusing
+    if (cmd === 'subscript' || cmd === 'superscript') {
+      // Small delay to ensure DOM updates
+      setTimeout(() => {
+        if (editor) editor.focus();
+      }, 0);
     }
   };
 
@@ -4377,6 +4546,34 @@ window.addEventListener("DOMContentLoaded", () => {
   };
   window.handleAdminGradeSubmission = handleAdminGradeSubmission;
   window.handleDeleteAssignment = handleDeleteAssignment;
+  
+  // Edit Assignment Modal Handlers
+  window.openEditAssignmentModal = (id) => {
+    const assignment = state.assignments.find((a) => a.id === id);
+    if (assignment) {
+      setState({ editingAssignment: assignment });
+    }
+  };
+  window.closeEditAssignmentModal = () => setState({ editingAssignment: null });
+  window.updateEditAssignmentCategoryOptions = (subjectName) => {
+    const select = document.getElementById("edit-assignment-category-select");
+    if (!select) return;
+
+    if (!subjectName) {
+      select.innerHTML = '<option value="">請先選擇科目</option>';
+      return;
+    }
+
+    const cats = state.categories[subjectName] || [];
+    if (cats.length === 0) {
+      select.innerHTML = '<option value="">此科目尚無類別</option>';
+    } else {
+      select.innerHTML = cats
+        .map((c) => `<option value="${c.name}">${c.name}</option>`)
+        .join("");
+    }
+  };
+
   window.updateAssignmentCategoryOptions = (subjectName) => {
     const select = document.getElementById("assignment-category-select");
     if (!select) return;
