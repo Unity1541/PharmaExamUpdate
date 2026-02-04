@@ -89,6 +89,8 @@ window.addEventListener("DOMContentLoaded", () => {
     editingAssignment: null, // Assignment being edited by admin
     // Bookmark Filter State
     selectedBookmarkFilterSubject: null,
+    // Leaderboard State
+    leaderboardData: [],
   };
 
   let examHistoryListener = null; // Listener for logged-in student
@@ -1306,6 +1308,106 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   // ╔═══════════════════════════════════════════════════════════════════════════╗
+  // ║                      🏆 排行榜功能 (Leaderboard)                          ║
+  // ╚═══════════════════════════════════════════════════════════════════════════╝
+
+  async function loadLeaderboardData() {
+    setLoading(true);
+    try {
+      // 取得所有考試歷史
+      const historySnapshot = await getDocs(collection(db, "examHistory"));
+      const allHistory = historySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      
+      // 取得所有使用者資料（管理員可讀取全部，學生可能受限）
+      let usersMap = {};
+      try {
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        usersSnapshot.docs.forEach(d => {
+          const data = d.data();
+          if (data.role === "student") {
+            usersMap[d.id] = { id: d.id, name: data.name, email: data.email };
+          }
+        });
+      } catch (userErr) {
+        // 學生可能無法讀取 users 集合，改用 examHistory 中的資料
+        console.warn("無法讀取 users 集合，使用 examHistory 資料", userErr);
+        const userIds = [...new Set(allHistory.map(h => h.userId))];
+        userIds.forEach(uid => {
+          usersMap[uid] = { id: uid, name: `使用者 ${uid.slice(-4)}`, email: "" };
+        });
+      }
+      
+      // 計算每位使用者的平均分
+      const userScores = {};
+      allHistory.forEach(h => {
+        if (!userScores[h.userId]) {
+          userScores[h.userId] = { totalScore: 0, count: 0 };
+        }
+        userScores[h.userId].totalScore += h.score;
+        userScores[h.userId].count += 1;
+      });
+      
+      // 組合排行資料
+      const leaderboard = Object.keys(userScores)
+        .map(uid => ({
+          userId: uid,
+          name: usersMap[uid]?.name || `使用者 ${uid.slice(-4)}`,
+          avgScore: Math.round(userScores[uid].totalScore / userScores[uid].count),
+          examCount: userScores[uid].count,
+        }))
+        .sort((a, b) => b.avgScore - a.avgScore);
+      
+      setState({ leaderboardData: leaderboard, currentView: "leaderboard" });
+    } catch (e) {
+      console.error("載入排行榜失敗:", e);
+      alert("載入排行榜失敗: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function createLeaderboardViewHTML() {
+    const data = state.leaderboardData;
+    
+    const rows = data.length === 0 
+      ? `<tr><td colspan="4" class="text-center py-8 text-coffee-light">目前沒有排行資料</td></tr>`
+      : data.map((u, idx) => `
+          <tr class="${idx < 3 ? 'bg-sun/10' : ''}">
+            <td class="px-4 py-3 font-bold text-center ${idx === 0 ? 'text-2xl text-yellow-500' : idx === 1 ? 'text-xl text-gray-400' : idx === 2 ? 'text-lg text-orange-400' : ''}">${idx + 1}</td>
+            <td class="px-4 py-3">${u.name}</td>
+            <td class="px-4 py-3 text-center font-semibold">${u.avgScore}</td>
+            <td class="px-4 py-3 text-center text-coffee-light">${u.examCount} 次</td>
+          </tr>
+        `).join('');
+    
+    return `
+      <div class="space-y-6">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-3xl text-sun">leaderboard</span>
+          <h2 class="text-2xl font-bold">成績排行榜</h2>
+        </div>
+        <p class="text-coffee-light text-sm">僅計算計算題部分的平均分數</p>
+        
+        <div class="bg-white/80 rounded-2xl shadow-card overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-cream-dark/50">
+              <tr>
+                <th class="px-4 py-3 text-left w-16">排名</th>
+                <th class="px-4 py-3 text-left">姓名</th>
+                <th class="px-4 py-3 text-center w-24">平均分</th>
+                <th class="px-4 py-3 text-center w-24">考試次數</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-cream-dark/30">
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // ╔═══════════════════════════════════════════════════════════════════════════╗
   // ║                     🎨 UI 生成器 (View Generators)                       ║
   // ║   createSidebarHTML, createLoginViewHTML, createDashboardViewHTML...  ║
   // ╚═══════════════════════════════════════════════════════════════════════════╝
@@ -1346,6 +1448,13 @@ window.addEventListener("DOMContentLoaded", () => {
                 : "text-coffee-light hover:bg-white hover:text-coffee hover:shadow-sm"
             } transition-all font-semibold">
                 <span class="material-symbols-outlined">campaign</span>公告欄
+            </a>
+            <a href="#" id="nav-leaderboard" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl ${
+              state.currentView === "leaderboard"
+                ? "bg-peach/10 text-peach font-bold shadow-sm"
+                : "text-coffee-light hover:bg-white hover:text-coffee hover:shadow-sm"
+            } transition-all font-semibold">
+                <span class="material-symbols-outlined">leaderboard</span>排行榜
             </a>
         `
         : `
@@ -1405,6 +1514,13 @@ window.addEventListener("DOMContentLoaded", () => {
                 : "text-coffee-light hover:bg-white hover:text-coffee hover:shadow-sm"
             } transition-all font-semibold">
                 <span class="material-symbols-outlined">campaign</span>公告管理
+            </a>
+            <a href="#" id="nav-leaderboard-admin" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl ${
+              state.currentView === "leaderboard"
+                ? "bg-peach/10 text-peach font-bold shadow-sm"
+                : "text-coffee-light hover:bg-white hover:text-coffee hover:shadow-sm"
+            } transition-all font-semibold">
+                <span class="material-symbols-outlined">leaderboard</span>排行榜
             </a>
         `;
 
@@ -3571,6 +3687,14 @@ window.addEventListener("DOMContentLoaded", () => {
             setState({ currentView: "bulletin-board" });
         };
       }
+      const navLeaderboard = container.querySelector("#nav-leaderboard");
+      if (navLeaderboard) {
+        navLeaderboard.onclick = (e) => {
+            e.preventDefault();
+            closeMobileMenu();
+            loadLeaderboardData();
+        };
+      }
     } else {
       const navUserMgmt = container.querySelector("#nav-user-management");
       const navSubjectMgmt = container.querySelector("#nav-subject-management");
@@ -3640,6 +3764,14 @@ window.addEventListener("DOMContentLoaded", () => {
           e.preventDefault();
           closeMobileMenu();
           setState({ currentView: "bulletin-board" });
+        };
+      }
+      const navLeaderboardAdmin = container.querySelector("#nav-leaderboard-admin");
+      if (navLeaderboardAdmin) {
+        navLeaderboardAdmin.onclick = (e) => {
+          e.preventDefault();
+          closeMobileMenu();
+          loadLeaderboardData();
         };
       }
     }
@@ -4170,6 +4302,10 @@ window.addEventListener("DOMContentLoaded", () => {
     
     if (state.currentView === "bulletin-board") {
         contentHTML = createBulletinBoardViewHTML();
+    }
+    
+    if (state.currentView === "leaderboard") {
+        contentHTML = createLeaderboardViewHTML();
     }
 
     // ** FIX: Preserve scroll position across renders **

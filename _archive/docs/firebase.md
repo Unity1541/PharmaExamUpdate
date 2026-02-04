@@ -221,9 +221,10 @@ service cloud.firestore {
 
     // ===== Users Collection =====
     // 使用者資料
+    // ✅ 排行榜功能：允許所有登入使用者讀取使用者資料以顯示排名姓名
     match /users/{userId} {
-      // 學生只能讀取自己的資料，管理員可以讀取所有人的資料
-      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      // 所有登入者可讀取（排行榜需要取得使用者名稱）
+      allow read: if isSignedIn();
       
       // 學生只能更新自己的資料 (且不能更改自己的 role)
       // 管理員可以更新任何人的資料
@@ -299,8 +300,9 @@ service cloud.firestore {
     // 學生個人資料
     
     // 測驗歷史
+    // ✅ 排行榜功能：允許所有登入使用者讀取考試歷史以顯示排行榜
     match /examHistory/{historyId} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow read: if isSignedIn();  // 排行榜需要讀取所有人的成績
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
