@@ -466,6 +466,7 @@ window.addEventListener("DOMContentLoaded", () => {
       answer: form.answer.value,
       explanation: explanationEditor ? explanationEditor.innerHTML.trim() : form.explanation?.value || '',
       imgurl: sanitizeImagePath(form.imgurl.value),
+      explanationImage: sanitizeImagePath(form.explanationImage.value),
     };
 
     try {
