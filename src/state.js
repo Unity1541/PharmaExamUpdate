@@ -39,6 +39,7 @@ export let state = {
   reviewingBookmarkedQuestionId: null,
   editingQuestion: null,
   editingUser: null,
+  editingCategory: null,
   // Handwritten Assignment State
   assignments: [],
   currentAssignment: null,

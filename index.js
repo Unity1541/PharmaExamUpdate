@@ -75,6 +75,7 @@ window.addEventListener("DOMContentLoaded", () => {
     reviewingBookmarkedQuestionId: null,
     editingQuestion: null,
     editingUser: null,
+    editingCategory: null,
     // Handwritten Assignment State
     assignments: [],
     currentAssignment: null, // The assignment being taken by student
@@ -435,6 +436,100 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function openEditCategoryModal(categoryId, subjectName) {
+    const category = state.categories[subjectName].find(c => c.id === categoryId);
+    if (category) {
+      setState({ editingCategory: category });
+    }
+  }
+
+  function closeEditCategoryModal() {
+    setState({ editingCategory: null });
+  }
+
+  async function handleUpdateCategory(e) {
+    e.preventDefault();
+    setLoading(true);
+    const form = e.target;
+    const categoryId = state.editingCategory.id;
+    const categoryName = form.categoryName.value.trim();
+    const timeLimit = parseInt(form.timeLimit.value, 10);
+    const subjectName = state.editingCategory.subject;
+    const oldCategoryName = state.editingCategory.name; // 保存舊的類別名稱
+
+    if (!categoryName || !timeLimit || timeLimit <= 0) {
+      alert("請填寫所有欄位並確保時間限制為正數。");
+      setLoading(false);
+      return;
+    }
+
+    // 檢查名稱是否與其他類別重複（排除自己）
+    if (
+      state.categories[subjectName] &&
+      state.categories[subjectName].some(
+        (c) => c.name.toLowerCase() === categoryName.toLowerCase() && c.id !== categoryId
+      )
+    ) {
+      alert("該類別名稱已存在於此科目中。");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // 1. 更新類別文檔
+      await updateDoc(doc(db, "categories", categoryId), {
+        name: categoryName,
+        timeLimit: timeLimit,
+      });
+
+      // 2. 如果類別名稱有變更，批次更新相關題目
+      if (oldCategoryName !== categoryName) {
+        // 查詢所有屬於該科目和舊類別名稱的題目
+        const questionsQuery = query(
+          collection(db, "questions"),
+          where("subject", "==", subjectName),
+          where("category", "==", oldCategoryName)
+        );
+        const questionsSnapshot = await getDocs(questionsQuery);
+        
+        // 批次更新題目
+        if (!questionsSnapshot.empty) {
+          const batch = writeBatch(db);
+          questionsSnapshot.docs.forEach((questionDoc) => {
+            batch.update(questionDoc.ref, { category: categoryName });
+          });
+          await batch.commit();
+          
+          // 更新本地 state 中的題目
+          const updatedQuestions = state.allQuestions.map((q) =>
+            q.subject === subjectName && q.category === oldCategoryName
+              ? { ...q, category: categoryName }
+              : q
+          );
+          setState({ allQuestions: updatedQuestions });
+        }
+      }
+
+      // 3. 更新本地類別狀態
+      const updatedCategories = { ...state.categories };
+      const subjectCategories = updatedCategories[subjectName].map((c) =>
+        c.id === categoryId
+          ? { ...c, name: categoryName, timeLimit: timeLimit }
+          : c
+      );
+      subjectCategories.sort((a, b) => a.name.localeCompare(b.name));
+      updatedCategories[subjectName] = subjectCategories;
+
+      setState({ categories: updatedCategories, editingCategory: null });
+      alert("類別更新成功！所有相關題目已同步更新。");
+    } catch (error) {
+      console.error("Error updating category:", error);
+      alert(`更新類別失敗：${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleUpdateQuestion(e) {
     e.preventDefault();
     setLoading(true);
@@ -450,6 +545,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const explanationEditor = document.getElementById('edit-explanation-editor');
 
     const updatedData = {
+      subject: q.subject, // 保持科目不變
+      category: form.category.value, // 從表單取得新的類別
       text: questionTextEditor ? questionTextEditor.innerHTML.trim() : form.questionText?.value || '',
       options: [
         option1Editor ? option1Editor.innerHTML.trim() : '',
@@ -819,7 +916,7 @@ window.addEventListener("DOMContentLoaded", () => {
       } catch (e) {
         console.error(e);
       } finally {
-        setLoading(false);
+      setLoading(false);
       }
     }
   }
@@ -2522,9 +2619,12 @@ window.addEventListener("DOMContentLoaded", () => {
           const catList = cats
             .map(
               (c) => `
-                    <li title="刪除類別">
-                        ${c.name} (${c.timeLimit}m)
-                        <button class="action-btn" onclick="window.handleDeleteCategory('${c.id}', '${s.name}')">&times;</button>
+                    <li style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                        <span>${c.name} (${c.timeLimit}m)</span>
+                        <div>
+                            <button class="action-btn" title="編輯類別" onclick="window.openEditCategoryModal('${c.id}', '${s.name}')" style="margin-right:4px;">${icons.edit}</button>
+                            <button class="action-btn" title="刪除類別" onclick="window.handleDeleteCategory('${c.id}', '${s.name}')">×</button>
+                        </div>
                     </li>
                  `
             )
@@ -3898,6 +3998,15 @@ window.addEventListener("DOMContentLoaded", () => {
                         <div class="modal-header"><h3>編輯題目</h3><button class="modal-close-btn" onclick="window.closeEditModal()">×</button></div>
                         <div class="modal-body">
                             <form id="edit-question-form" class="admin-form">
+                                <div class="form-group"><label>科目</label><input type="text" value="${q.subject}" disabled style="background-color: #eee;"></div>
+                                <div class="form-group">
+                                    <label>類別</label>
+                                    <select name="category" required>
+                                        ${state.categories[q.subject]?.map(c => 
+                                            `<option value="${c.name}" ${c.name === q.category ? 'selected' : ''}>${c.name}</option>`
+                                        ).join('') || '<option value="">無類別</option>'}
+                                    </select>
+                                </div>
                                 <div class="form-group">
                                     <label>題目敘述</label>
                                     ${createMiniToolbar('edit-question-text-editor')}
@@ -3994,6 +4103,22 @@ window.addEventListener("DOMContentLoaded", () => {
                                 <div class="form-group"><label>姓名</label><input type="text" name="userName" value="${u.name}" required></div>
                                 <div class="form-group"><label>Email</label><input type="text" value="${u.email}" disabled style="background-color: #eee;"></div>
                                 <div class="form-group"><label>角色</label><input type="text" value="${u.role}" disabled style="background-color: #eee;"></div>
+                                <button type="submit" class="submit-button">儲存變更</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>`;
+    } else if (state.editingCategory) {
+      const c = state.editingCategory;
+      modalHTML = `
+                <div class="modal-backdrop">
+                    <div class="modal-content" style="height: auto;">
+                        <div class="modal-header"><h3>編輯類別</h3><button class="modal-close-btn" onclick="window.closeEditCategoryModal()">×</button></div>
+                        <div class="modal-body">
+                            <form id="edit-category-form" class="admin-form">
+                                <div class="form-group"><label>科目</label><input type="text" value="${c.subject}" disabled style="background-color: #eee;"></div>
+                                <div class="form-group"><label>類別名稱</label><input type="text" name="categoryName" value="${c.name}" required></div>
+                                <div class="form-group"><label>時間限制 (分鐘)</label><input type="number" name="timeLimit" value="${c.timeLimit}" required min="1"></div>
                                 <button type="submit" class="submit-button">儲存變更</button>
                             </form>
                         </div>
@@ -4141,6 +4266,10 @@ window.addEventListener("DOMContentLoaded", () => {
     // Bind Bulletin Form
     const bulletinForm = document.getElementById("bulletin-form");
     if (bulletinForm) bulletinForm.onsubmit = handleAddAnnouncement;
+
+    // Bind Edit Category Form
+    const editCategoryForm = document.getElementById("edit-category-form");
+    if (editCategoryForm) editCategoryForm.onsubmit = handleUpdateCategory;
 
     // Bind Edit Assignment Form
     const editAssignmentForm = document.getElementById("edit-assignment-form");
@@ -5010,6 +5139,10 @@ window.addEventListener("DOMContentLoaded", () => {
   };
   window.handleDeleteExamHistory = handleDeleteExamHistory;
   window.handleDeleteBookmark = handleDeleteBookmark;
+  window.openEditCategoryModal = openEditCategoryModal;
+  window.closeEditCategoryModal = closeEditCategoryModal;
+  window.handleDeleteCategory = handleDeleteCategory;
+  window.handleDeleteSubject = handleDeleteSubject;
 
   // ╔═══════════════════════════════════════════════════════════════════════════╗
   // ║                       🚀 初始化 (Initialization)                          ║

@@ -207,11 +207,98 @@ export async function handleDeleteCategory(id, subjectName) {
   }
 }
 
+/**
+ * 更新類別名稱和時間限制
+ * 同時批次更新所有相關題目的類別標籤
+ */
+export async function handleUpdateCategory(e) {
+  e.preventDefault();
+  setLoading(true);
+  const form = e.target;
+  const categoryId = state.editingCategory.id;
+  const categoryName = form.categoryName.value.trim();
+  const timeLimit = parseInt(form.timeLimit.value, 10);
+  const subjectName = state.editingCategory.subject;
+  const oldCategoryName = state.editingCategory.name; // 保存舊的類別名稱
+
+  if (!categoryName || !timeLimit || timeLimit <= 0) {
+    alert("請填寫所有欄位並確保時間限制為正數。");
+    setLoading(false);
+    return;
+  }
+
+  // 檢查名稱是否與其他類別重複（排除自己）
+  if (
+    state.categories[subjectName] &&
+    state.categories[subjectName].some(
+      (c) => c.name.toLowerCase() === categoryName.toLowerCase() && c.id !== categoryId
+    )
+  ) {
+    alert("該類別名稱已存在於此科目中。");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    // 1. 更新類別文檔
+    await updateDoc(doc(db, "categories", categoryId), {
+      name: categoryName,
+      timeLimit: timeLimit,
+    });
+
+    // 2. 如果類別名稱有變更，批次更新相關題目
+    if (oldCategoryName !== categoryName) {
+      // 查詢所有屬於該科目和舊類別名稱的題目
+      const questionsQuery = query(
+        collection(db, "questions"),
+        where("subject", "==", subjectName),
+        where("category", "==", oldCategoryName)
+      );
+      const questionsSnapshot = await getDocs(questionsQuery);
+      
+      // 批次更新題目
+      if (!questionsSnapshot.empty) {
+        const batch = writeBatch(db);
+        questionsSnapshot.docs.forEach((questionDoc) => {
+          batch.update(questionDoc.ref, { category: categoryName });
+        });
+        await batch.commit();
+        
+        // 更新本地 state 中的題目
+        const updatedQuestions = state.allQuestions.map((q) =>
+          q.subject === subjectName && q.category === oldCategoryName
+            ? { ...q, category: categoryName }
+            : q
+        );
+        setState({ allQuestions: updatedQuestions });
+      }
+    }
+
+    // 3. 更新本地類別狀態
+    const updatedCategories = { ...state.categories };
+    const subjectCategories = updatedCategories[subjectName].map((c) =>
+      c.id === categoryId
+        ? { ...c, name: categoryName, timeLimit: timeLimit }
+        : c
+    );
+    subjectCategories.sort((a, b) => a.name.localeCompare(b.name));
+    updatedCategories[subjectName] = subjectCategories;
+
+    setState({ categories: updatedCategories, editingCategory: null });
+    alert("類別更新成功！所有相關題目已同步更新。");
+  } catch (error) {
+    console.error("Error updating category:", error);
+    alert(`更新類別失敗：${error.message}`);
+  } finally {
+    setLoading(false);
+  }
+}
+
 // ==================== 題目管理 ====================
 
 /**
  * 更新題目
- * @param {Event} e 
+ * 支援修改題目內容、選項、答案、詳解以及類別標籤
  */
 export async function handleUpdateQuestion(e) {
   e.preventDefault();
@@ -220,6 +307,8 @@ export async function handleUpdateQuestion(e) {
   const q = state.editingQuestion;
 
   const updatedData = {
+    subject: q.subject, // 保持科目不變
+    category: form.category.value, // 從表單取得新的類別
     text: form.questionText.value,
     options: [
       form.option1.value,
