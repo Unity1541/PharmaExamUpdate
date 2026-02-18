@@ -482,9 +482,9 @@ window.addEventListener("DOMContentLoaded", () => {
         timeLimit: timeLimit,
       });
 
-      // 2. 如果類別名稱有變更，批次更新相關題目
+      // 2. 如果類別名稱有變更，批次更新相關題目與考試紀錄
       if (oldCategoryName !== categoryName) {
-        // 查詢所有屬於該科目和舊類別名稱的題目
+        // (A) 批次更新題目
         const questionsQuery = query(
           collection(db, "questions"),
           where("subject", "==", subjectName),
@@ -492,7 +492,6 @@ window.addEventListener("DOMContentLoaded", () => {
         );
         const questionsSnapshot = await getDocs(questionsQuery);
         
-        // 批次更新題目
         if (!questionsSnapshot.empty) {
           const batch = writeBatch(db);
           questionsSnapshot.docs.forEach((questionDoc) => {
@@ -508,6 +507,47 @@ window.addEventListener("DOMContentLoaded", () => {
           );
           setState({ allQuestions: updatedQuestions });
         }
+
+        // (B) 批次更新使用者考試紀錄
+        const historyQuery = query(
+          collection(db, "examHistory"),
+          where("subject", "==", subjectName),
+          where("category", "==", oldCategoryName)
+        );
+        const historySnapshot = await getDocs(historyQuery);
+
+        if (!historySnapshot.empty) {
+          const historyBatch = writeBatch(db);
+          historySnapshot.docs.forEach((docItem) => {
+            historyBatch.update(docItem.ref, { category: categoryName });
+          });
+          await historyBatch.commit();
+        }
+
+        // (C) 同步更新本地 state 中的考試紀錄
+        if (state.currentUser && state.currentUser.examHistory) {
+          const updatedHistory = state.currentUser.examHistory.map((h) =>
+            h.subject === subjectName && h.category === oldCategoryName
+              ? { ...h, category: categoryName }
+              : h
+          );
+          setState({
+            currentUser: { ...state.currentUser, examHistory: updatedHistory },
+          });
+        }
+        if (state.selectedStudentAnalyticsData && state.selectedStudentAnalyticsData.examHistory) {
+          const updatedHistory = state.selectedStudentAnalyticsData.examHistory.map((h) =>
+            h.subject === subjectName && h.category === oldCategoryName
+              ? { ...h, category: categoryName }
+              : h
+          );
+          setState({
+            selectedStudentAnalyticsData: {
+              ...state.selectedStudentAnalyticsData,
+              examHistory: updatedHistory,
+            },
+          });
+        }
       }
 
       // 3. 更新本地類別狀態
@@ -521,7 +561,7 @@ window.addEventListener("DOMContentLoaded", () => {
       updatedCategories[subjectName] = subjectCategories;
 
       setState({ categories: updatedCategories, editingCategory: null });
-      alert("類別更新成功！所有相關題目已同步更新。");
+      alert("類別更新成功！所有相關題目與考試紀錄已同步更新。");
     } catch (error) {
       console.error("Error updating category:", error);
       alert(`更新類別失敗：${error.message}`);

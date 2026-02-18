@@ -246,9 +246,9 @@ export async function handleUpdateCategory(e) {
       timeLimit: timeLimit,
     });
 
-    // 2. 如果類別名稱有變更，批次更新相關題目
+    // 2. 如果類別名稱有變更，批次更新相關題目與考試紀錄
     if (oldCategoryName !== categoryName) {
-      // 查詢所有屬於該科目和舊類別名稱的題目
+      // (A) Update Questions
       const questionsQuery = query(
         collection(db, "questions"),
         where("subject", "==", subjectName),
@@ -256,7 +256,6 @@ export async function handleUpdateCategory(e) {
       );
       const questionsSnapshot = await getDocs(questionsQuery);
       
-      // 批次更新題目
       if (!questionsSnapshot.empty) {
         const batch = writeBatch(db);
         questionsSnapshot.docs.forEach((questionDoc) => {
@@ -271,6 +270,23 @@ export async function handleUpdateCategory(e) {
             : q
         );
         setState({ allQuestions: updatedQuestions });
+      }
+
+      // (B) Update Exam History [NEW]
+      // 同步更新所有使用者的考試紀錄
+      const historyQuery = query(
+        collection(db, "examHistory"),
+        where("subject", "==", subjectName),
+        where("category", "==", oldCategoryName)
+      );
+      const historySnapshot = await getDocs(historyQuery);
+
+      if (!historySnapshot.empty) {
+        const historyBatch = writeBatch(db);
+        historySnapshot.docs.forEach((docItem) => {
+          historyBatch.update(docItem.ref, { category: categoryName });
+        });
+        await historyBatch.commit();
       }
     }
 
