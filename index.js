@@ -41,6 +41,7 @@ import {
   where,
   writeBatch,
   onSnapshot,
+  getCountFromServer,
 } from "./firebase.js";
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -1265,7 +1266,7 @@ window.addEventListener("DOMContentLoaded", () => {
   // ║                       📝 考試邏輯 (Exam Logic)                            ║
   // ╚═══════════════════════════════════════════════════════════════════════════╝
   
-  function startExam(subject, categoryName) {
+  async function startExam(subject, categoryName) {
     setLoading(true);
     const category = state.categories[subject].find(
       (c) => c.name === categoryName
@@ -1276,49 +1277,60 @@ window.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Filter questions
-    const questions = state.allQuestions.filter(
-      (q) => q.subject === subject && q.category === categoryName
-    );
-    if (questions.length === 0) {
-      alert("此類別暫無題目");
+    // 懶載入：從 Firestore 即時查詢該科目+類別的題目（不依賴 state.allQuestions）
+    try {
+      const qQuery = query(
+        collection(db, "questions"),
+        where("subject", "==", subject),
+        where("category", "==", categoryName)
+      );
+      const snapshot = await getDocs(qQuery);
+      const questions = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+      if (questions.length === 0) {
+        alert("此類別暫無題目");
+        setLoading(false);
+        return;
+      }
+
+      // Shuffle (Fisher-Yates)
+      for (let i = questions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [questions[i], questions[j]] = [questions[j], questions[i]];
+      }
+
+      // Init Exam State
+      const examState = {
+        subject,
+        category: categoryName,
+        questions,
+        answers: {}, // { questionId: optionIndex }
+        currentQuestionIndex: 0,
+        startTime: new Date(),
+        timeLeft: category.timeLimit * 60,
+        timerInterval: setInterval(() => {
+          // ** FIX: Update timer DOM directly instead of triggering full re-render **
+          if (!state.examState) return;
+          state.examState.timeLeft -= 1;
+
+          const timerDisplay = document.getElementById("exam-timer-span");
+          if (timerDisplay) {
+            timerDisplay.textContent = formatTime(state.examState.timeLeft);
+          }
+
+          if (state.examState.timeLeft <= 0) {
+            handleFinishExam();
+          }
+        }, 1000),
+      };
+
+      setState({ currentView: "exam-taking", examState });
+    } catch (error) {
+      console.error("載入考試題目失敗:", error);
+      alert("載入題目時發生錯誤，請稍後再試。");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Shuffle (Fisher-Yates)
-    for (let i = questions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [questions[i], questions[j]] = [questions[j], questions[i]];
-    }
-
-    // Init Exam State
-    const examState = {
-      subject,
-      category: categoryName,
-      questions,
-      answers: {}, // { questionId: optionIndex }
-      currentQuestionIndex: 0,
-      startTime: new Date(),
-      timeLeft: category.timeLimit * 60,
-      timerInterval: setInterval(() => {
-        // ** FIX: Update timer DOM directly instead of triggering full re-render **
-        if (!state.examState) return;
-        state.examState.timeLeft -= 1;
-
-        const timerDisplay = document.getElementById("exam-timer-span");
-        if (timerDisplay) {
-          timerDisplay.textContent = formatTime(state.examState.timeLeft);
-        }
-
-        if (state.examState.timeLeft <= 0) {
-          handleFinishExam();
-        }
-      }, 1000),
-    };
-
-    setState({ currentView: "exam-taking", examState });
-    setLoading(false);
   }
 
   function handleAnswerSelection(questionId, optionIndex) {
@@ -1371,7 +1383,9 @@ window.addEventListener("DOMContentLoaded", () => {
           questionId: questionId,
           createdAt: new Date().toISOString(),
         });
-        const qDetails = state.allQuestions.find((q) => q.id === questionId);
+        // 優先從當前考試題目找，再 fallback 到 allQuestions（管理員或已載入時）
+        const qDetails = state.examState?.questions?.find((q) => q.id === questionId)
+          || state.allQuestions.find((q) => q.id === questionId);
         const newBookmarks = [
           ...state.currentUser.bookmarkedQuestions,
           { ...qDetails, bookmarkId: docRef.id },
@@ -2324,15 +2338,16 @@ window.addEventListener("DOMContentLoaded", () => {
   function createExamSelectionViewHTML() {
     const subjectCards = state.subjects
       .map((subject) => {
-        // Count questions available
-        const count = state.allQuestions.filter(
+        // 管理員有 allQuestions 可直接計算；學生端先顯示 placeholder，render 後非同步查詢
+        const isStudent = state.currentUser?.role === 'student';
+        const count = isStudent ? null : state.allQuestions.filter(
           (q) => q.subject === subject.name
         ).length;
         return `
             <div class="subject-card">
                 <div class="card-header">
                     <div class="card-icon">${icons.book}</div>
-                    <div class="card-badge">${count} 題</div>
+                    <div class="card-badge" data-subject-count="${subject.name}">${count !== null ? count + ' 題' : '<span class="loading-dots">⋯</span>'}</div>
                 </div>
                 <h3>${subject.name}</h3>
                 <p class="description">${subject.description}</p>
@@ -4557,6 +4572,26 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    // 懶載入：學生端非同步查詢各科目題數並更新 DOM
+    if (state.currentView === 'exam-selection' && state.currentUser?.role === 'student') {
+      const countBadges = document.querySelectorAll('[data-subject-count]');
+      countBadges.forEach(async (badge) => {
+        const subjectName = badge.getAttribute('data-subject-count');
+        try {
+          const qQuery = query(
+            collection(db, 'questions'),
+            where('subject', '==', subjectName)
+          );
+          // 使用伺服器端計數，不下載文件，只回傳數字（省流量+省費用）
+          const countSnapshot = await getCountFromServer(qQuery);
+          badge.textContent = countSnapshot.data().count + ' 題';
+        } catch (err) {
+          console.warn('題數查詢失敗:', subjectName, err);
+          badge.textContent = '—';
+        }
+      });
+    }
+
     document.querySelectorAll(".review-button").forEach((btn) => {
       btn.onclick = () => {
         const examId = btn.dataset.examId;
@@ -5222,7 +5257,7 @@ window.addEventListener("DOMContentLoaded", () => {
           const userData = userDoc.exists() ? userDoc.data() : {};
           const role = userData.role || "student"; // Default to student
 
-          // 2. Fetch Common Data (Subjects, Categories, Questions, Assignments)
+          // 2. Fetch Common Data (Subjects, Categories, Assignments)
           const subjectsSnapshot = await getDocs(collection(db, "subjects"));
           const subjects = subjectsSnapshot.docs
             .map((d) => ({ id: d.id, ...d.data() }))
@@ -5238,11 +5273,15 @@ window.addEventListener("DOMContentLoaded", () => {
             if (categories[c.subject]) categories[c.subject].push(c);
           });
 
-          const questionsSnapshot = await getDocs(collection(db, "questions"));
-          const allQuestions = questionsSnapshot.docs.map((d) => ({
-            id: d.id,
-            ...d.data(),
-          }));
+          // 懶載入：只有管理員才全量載入題目，學生在 startExam() 時按需查詢
+          let allQuestions = [];
+          if (role === "admin") {
+            const questionsSnapshot = await getDocs(collection(db, "questions"));
+            allQuestions = questionsSnapshot.docs.map((d) => ({
+              id: d.id,
+              ...d.data(),
+            }));
+          }
 
           // Fetch Handwritten Assignments
           const assignmentsSnapshot = await getDocs(
@@ -5289,12 +5328,19 @@ window.addEventListener("DOMContentLoaded", () => {
                 where("userId", "==", user.uid)
               )
             );
+            // 懶載入：逐一從 Firestore 查詢書籤對應的題目（學生書籤通常不多）
             const bookmarkedQuestions = [];
-            bookmarkSnapshot.docs.forEach((d) => {
+            for (const d of bookmarkSnapshot.docs) {
               const bData = d.data();
-              const q = allQuestions.find((q) => q.id === bData.questionId);
-              if (q) bookmarkedQuestions.push({ ...q, bookmarkId: d.id });
-            });
+              try {
+                const qDoc = await getDoc(doc(db, "questions", bData.questionId));
+                if (qDoc.exists()) {
+                  bookmarkedQuestions.push({ id: qDoc.id, ...qDoc.data(), bookmarkId: d.id });
+                }
+              } catch (err) {
+                console.warn("書籤對應題目查詢失敗:", bData.questionId, err);
+              }
+            }
 
             // Calculate Radar Data from History
             const radarChartData = calculateRadarData(examHistory);

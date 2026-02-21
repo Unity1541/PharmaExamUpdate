@@ -24,6 +24,7 @@ import {
   where,
   writeBatch,
   onSnapshot,
+  getCountFromServer,
 } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 
 // --- IMPORTANT: FIREBASE CONFIGURATION ---
@@ -76,4 +77,5 @@ export {
   where,
   writeBatch,
   onSnapshot,
+  getCountFromServer,
 };
