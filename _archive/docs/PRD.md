@@ -65,7 +65,7 @@ flowchart LR
 flowchart TD
     subgraph 前端["前端 (Client-Side SPA)"]
         HTML[index.html]
-        JS[index.js - 5,415 行主程式]
+        JS[index.js - 5,200 行主程式]
         CSS[index.css + Tailwind CDN]
         MOD[src/modules/*.js]
         STATE[src/state.js]
@@ -115,7 +115,7 @@ flowchart TD
 ```
 考試系統測試區(上線版)/
 ├── index.html              # 主 HTML 頁面（SPA 入口）
-├── index.js                # 主程式 (5,415 行)
+├── index.js                # 主程式 (5,200 行)
 ├── index.css               # 自訂樣式表 (~2,300 行)
 ├── firebase.js             # Firebase 配置與匯出 (80 行)
 ├── package.json            # npm 專案定義
@@ -467,6 +467,7 @@ flowchart TD
 | 刪除作業 | `handleDeleteAssignment(id)` | 確認後刪除 |
 | 學生提交 | `handleAssignmentSubmit(status)` | 支援草稿與正式提交 |
 | 管理員評分 | `handleAdminGradeSubmission(e)` | 打分 + 回饋文字 + 回饋圖片 |
+| **列印作業** | `printStudentAssignment(submissionId)` | 管理者可列印個別使用者的題目與作答區（A4 排版，sub/sup 上下標正確）|
 
 ### 6.5 公告模組 (`bulletin.js`)
 
@@ -504,6 +505,7 @@ flowchart TD
 | 科目/類別管理 | ❌ | ✅ |
 | 用戶管理 | ❌ | ✅ |
 | 出題/評分作業 | ❌ | ✅ |
+| 列印學生作業 | ❌ | ✅ |
 | 發佈公告 | ❌ | ✅ |
 | 查看學生分析 | ❌ | ✅ |
 

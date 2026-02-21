@@ -220,6 +220,7 @@ window.addEventListener("DOMContentLoaded", () => {
     check: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>`,
     pencil: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>`,
     campaign: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 018.835 2.535M10.34 6.66a23.847 23.847 0 018.835-2.535m0 0A23.74 23.74 0 0018.795 3m.38 1.125a23.91 23.91 0 011.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 001.014-5.395m0-3.46c.495.43.811 1.035.811 1.73 0 .695-.316 1.3-.811 1.73m0-3.46a24.347 24.347 0 010 3.46" /></svg>`,
+    print: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18.25 7.034V3.375"/></svg>`,
   };
 
   // ╔═══════════════════════════════════════════════════════════════════════════╗
@@ -3569,6 +3570,7 @@ window.addEventListener("DOMContentLoaded", () => {
                     </div>
                      <div style="display:flex; align-items:center; gap:12px;">
                         ${statusBadge}
+                        <button class="action-btn" title="列印" onclick="window.printStudentAssignment('${s.id}')">${icons.print}</button>
                         <button class="action-btn" title="評分" onclick="window.openGradingDetail('${
                           s.id
                         }')">${icons.edit}</button>
@@ -4952,6 +4954,101 @@ window.addEventListener("DOMContentLoaded", () => {
     const sub = state.assignmentSubmissions.find((s) => s.id === submissionId);
     setState({ currentView: "admin-grading-detail", gradingSubmission: sub });
   };
+
+  // 列印個別學生的作業題目與作答
+  window.printStudentAssignment = (submissionId) => {
+    const sub = state.assignmentSubmissions.find((s) => s.id === submissionId);
+    const assign = state.currentAssignment;
+    if (!sub || !assign) {
+      alert('找不到該提交記錄或作業資料。');
+      return;
+    }
+
+    // 處理舊版資料結構
+    const questions = assign.questions || [
+      { text: assign.content, image: assign.imageUrl, score: assign.maxScore },
+    ];
+    let studentAnswers = [];
+    if (sub.answers) studentAnswers = sub.answers;
+    else if (sub.content) studentAnswers = [sub.content];
+
+    const submittedDate = new Date(sub.updatedAt || sub.createdAt).toLocaleDateString('zh-TW');
+
+    // 組合題目與作答 HTML（避免模板縮排產生多餘空白）
+    const qaHTML = questions.map((q, idx) => {
+      const answer = studentAnswers[idx];
+      const hasAnswer = answer && answer.trim() !== '';
+      const imageHtml = q.image ? '<div class="question-image"><img src="' + q.image + '" /></div>' : '';
+      const answerHtml = hasAnswer ? answer : '<div class="answer-blank-lines"><div></div><div></div><div></div><div></div><div></div><div></div></div>';
+      return '<div class="qa-block">' +
+        '<div class="question-section">' +
+          '<div class="question-header">' +
+            '<span class="question-number">第 ' + (idx + 1) + ' 題</span>' +
+            '<span class="question-score">配分：' + q.score + ' 分</span>' +
+          '</div>' +
+          '<div class="question-text">' + q.text + '</div>' +
+          imageHtml +
+        '</div>' +
+        '<div class="answer-section">' +
+          '<div class="answer-label">作答區</div>' +
+          '<div class="answer-content">' + answerHtml + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    const printCSS = [
+      '@page { size: A4; margin: 15mm; }',
+      '* { box-sizing: border-box; margin: 0; padding: 0; }',
+      'html, body { width: 100%; max-width: 100%; overflow-x: hidden; }',
+      'body { font-family: "標楷體", "DFKai-SB", "BiauKai", "Noto Serif TC", serif; font-size: 14px; line-height: 1.6; color: #1a1a1a; background: #fff; padding: 0; }',
+      '.print-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 16px; }',
+      '.print-header h1 { font-size: 20px; margin-bottom: 4px; letter-spacing: 2px; }',
+      '.print-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: #444; margin-top: 6px; }',
+      '.qa-block { border: 1px solid #999; border-radius: 4px; margin-bottom: 14px; page-break-inside: avoid; }',
+      '.question-section { background: #f5f5f5; padding: 10px 14px; border-bottom: 1px solid #999; }',
+      '.question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }',
+      '.question-number { font-weight: bold; font-size: 14px; }',
+      '.question-score { font-size: 12px; color: #555; background: #e0e0e0; padding: 1px 8px; border-radius: 8px; }',
+      '.question-text { font-size: 14px; line-height: 1.7; word-wrap: break-word; overflow-wrap: break-word; }',
+      '.question-text sub { vertical-align: sub; font-size: 0.75em; }',
+      '.question-text sup { vertical-align: super; font-size: 0.75em; }',
+      '.question-image { margin-top: 8px; }',
+      '.question-image img { max-width: 100%; max-height: 200px; border: 1px solid #ccc; border-radius: 3px; }',
+      '.answer-section { padding: 10px 14px; }',
+      '.answer-label { font-size: 12px; font-weight: bold; color: #444; margin-bottom: 6px; border-left: 3px solid #4a90d9; padding-left: 8px; }',
+      '.answer-content { font-size: 14px; line-height: 1.7; min-height: 50px; word-wrap: break-word; overflow-wrap: break-word; }',
+      '.answer-content sub { vertical-align: sub; font-size: 0.75em; }',
+      '.answer-content sup { vertical-align: super; font-size: 0.75em; }',
+      '.answer-blank-lines div { border-bottom: 1px dashed #bbb; height: 32px; }',
+      '.print-footer { margin-top: 16px; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #ddd; padding-top: 6px; }',
+      'img { max-width: 100% !important; height: auto !important; }',
+      'div, p, span { max-width: 100%; overflow-wrap: break-word; word-break: break-word; }',
+    ].join('\n');
+
+    const metaHtml = '<span>科目：' + assign.subject + (assign.category ? ' ─ ' + assign.category : '') + '</span>' +
+      '<span>姓名：' + sub.userName + '</span>' +
+      '<span>日期：' + submittedDate + '</span>' +
+      '<span>滿分：' + assign.maxScore + ' 分</span>';
+
+    const printHTML = '<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+      '<title>' + assign.title + ' - ' + sub.userName + '</title>' +
+      '<style>' + printCSS + '</style></head><body>' +
+      '<div class="print-header"><h1>' + assign.title + '</h1><div class="print-meta">' + metaHtml + '</div></div>' +
+      qaHTML +
+      '<div class="print-footer">— 列印日期：' + new Date().toLocaleDateString('zh-TW') + ' —</div>' +
+      '<script>var imgs=document.querySelectorAll("img"),c=0,t=imgs.length;if(t===0){window.print();}else{imgs.forEach(function(i){if(i.complete){c++;if(c===t)window.print();}else{i.onload=i.onerror=function(){c++;if(c===t)window.print();};}});}<\\/script>' +
+      '</body></html>';
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printHTML);
+      printWindow.document.close();
+    } else {
+      alert('無法開啟列印視窗，請允許此網站的彈出式視窗。');
+    }
+  };
+
   window.handleAdminGradeSubmission = handleAdminGradeSubmission;
   window.handleDeleteAssignment = handleDeleteAssignment;
   
