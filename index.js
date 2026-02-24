@@ -3376,7 +3376,12 @@ window.addEventListener("DOMContentLoaded", () => {
                                         <button class="symbol-btn" onclick="window.insertSymbol('H₂O', '${uniqueEditorId}')">H₂O</button>
                                         <button class="symbol-btn" onclick="window.insertSymbol('CO₂', '${uniqueEditorId}')">CO₂</button>
                                         <button class="symbol-btn" onclick="window.insertSymbol('Δ', '${uniqueEditorId}')">Δ</button>
-                                        <button class="symbol-btn" onclick="window.insertSymbol('°C', '${uniqueEditorId}')">°C</button>
+                                        <button class="symbol-btn" onclick="window.insertSymbol('μ', '${uniqueEditorId}')">μ</button>
+                                        <button class="symbol-btn" onclick="window.insertSymbol('μg', '${uniqueEditorId}')">μg</button>
+                                        <button class="symbol-btn" onclick="window.insertSymbol('AUC', '${uniqueEditorId}')">AUC</button>
+                                        <button class="symbol-btn" onclick="window.insertSymbol('Cl', '${uniqueEditorId}')">Cl</button>
+                                        <button class="symbol-btn" onclick="window.insertSymbol('Cₚₛₛ', '${uniqueEditorId}')">Cₚₛₛ</button>
+                                        <button class="symbol-btn" onclick="window.insertSymbol('R', '${uniqueEditorId}')">R</button>
                                     </div>
                                 </div>`
                                     : ""
@@ -5162,7 +5167,12 @@ window.addEventListener("DOMContentLoaded", () => {
                         <button type="button" class="symbol-btn" onclick="window.insertSymbol('H₂O', '${uniqueEditorId}')">H₂O</button>
                         <button type="button" class="symbol-btn" onclick="window.insertSymbol('CO₂', '${uniqueEditorId}')">CO₂</button>
                         <button type="button" class="symbol-btn" onclick="window.insertSymbol('Δ', '${uniqueEditorId}')">Δ</button>
-                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('°C', '${uniqueEditorId}')">°C</button>
+                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('μ', '${uniqueEditorId}')">μ</button>
+                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('μg', '${uniqueEditorId}')">μg</button>
+                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('AUC', '${uniqueEditorId}')">AUC</button>
+                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('Cl', '${uniqueEditorId}')">Cl</button>
+                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('Cₚₛₛ', '${uniqueEditorId}')">Cₚₛₛ</button>
+                        <button type="button" class="symbol-btn" onclick="window.insertSymbol('R', '${uniqueEditorId}')">R</button>
                     </div>
                 </div>
             </div>
