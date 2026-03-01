@@ -323,7 +323,7 @@ export async function handleUpdateQuestion(e) {
   const q = state.editingQuestion;
 
   const updatedData = {
-    subject: q.subject, // 保持科目不變
+    subject: form.subject.value, // 從表單取得新的科目
     category: form.category.value, // 從表單取得新的類別
     text: form.questionText.value,
     options: [
@@ -348,6 +348,21 @@ export async function handleUpdateQuestion(e) {
     const updatedAllQuestions = state.allQuestions.map((item) =>
       item.id === q.id ? { ...item, ...updatedData } : item
     );
+    
+    // 同步更新本地 state 中的 bookmark
+    if (state.currentUser && state.currentUser.bookmarkedQuestions) {
+      const updatedBookmarks = state.currentUser.bookmarkedQuestions.map((item) =>
+        item.id === q.id ? { ...item, ...updatedData } : item
+      );
+      state.currentUser.bookmarkedQuestions = updatedBookmarks;
+    }
+    if (state.selectedStudentAnalyticsData && state.selectedStudentAnalyticsData.bookmarkedQuestions) {
+      const updatedBookmarks = state.selectedStudentAnalyticsData.bookmarkedQuestions.map((item) =>
+        item.id === q.id ? { ...item, ...updatedData } : item
+      );
+      state.selectedStudentAnalyticsData.bookmarkedQuestions = updatedBookmarks;
+    }
+
     setState({ allQuestions: updatedAllQuestions, editingQuestion: null });
     alert("題目更新成功");
   } catch (err) {

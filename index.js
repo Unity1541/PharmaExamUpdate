@@ -188,6 +188,15 @@ window.addEventListener("DOMContentLoaded", () => {
   window.handleManualAddSubjectChange = handleManualAddSubjectChange;
   window.handleManualAddCategoryChange = handleManualAddCategoryChange;
   window.handleAddQuestion = handleAddQuestion;
+  window.handleEditQuestionSubjectChange = function(subject) {
+    const categorySelect = document.querySelector('#edit-question-form select[name="category"]');
+    if (categorySelect) {
+      const categories = state.categories[subject] || [];
+      categorySelect.innerHTML = categories.map(c => 
+          `<option value="${c.name}">${c.name}</option>`
+      ).join('') || '<option value="">無類別</option>';
+    }
+  };
 
   const setLoading = (isLoading) => {
     const indicator = document.getElementById("loading-indicator");
@@ -587,7 +596,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const explanationEditor = document.getElementById('edit-explanation-editor');
 
     const updatedData = {
-      subject: q.subject, // 保持科目不變
+      subject: form.subject.value, // 從表單取得新的科目
       category: form.category.value, // 從表單取得新的類別
       text: questionTextEditor ? questionTextEditor.innerHTML.trim() : form.questionText?.value || '',
       options: [
@@ -614,6 +623,21 @@ window.addEventListener("DOMContentLoaded", () => {
       const updatedAllQuestions = state.allQuestions.map((item) =>
         item.id === q.id ? { ...item, ...updatedData } : item
       );
+
+      // 同步更新本地 state 中的 bookmark
+      if (state.currentUser && state.currentUser.bookmarkedQuestions) {
+        const updatedBookmarks = state.currentUser.bookmarkedQuestions.map((item) =>
+          item.id === q.id ? { ...item, ...updatedData } : item
+        );
+        state.currentUser.bookmarkedQuestions = updatedBookmarks;
+      }
+      if (state.selectedStudentAnalyticsData && state.selectedStudentAnalyticsData.bookmarkedQuestions) {
+        const updatedBookmarks = state.selectedStudentAnalyticsData.bookmarkedQuestions.map((item) =>
+          item.id === q.id ? { ...item, ...updatedData } : item
+        );
+        state.selectedStudentAnalyticsData.bookmarkedQuestions = updatedBookmarks;
+      }
+      
       setState({ allQuestions: updatedAllQuestions, editingQuestion: null });
       alert("題目更新成功");
     } catch (err) {
@@ -4060,7 +4084,14 @@ window.addEventListener("DOMContentLoaded", () => {
                         <div class="modal-header"><h3>編輯題目</h3><button class="modal-close-btn" onclick="window.closeEditModal()">×</button></div>
                         <div class="modal-body">
                             <form id="edit-question-form" class="admin-form">
-                                <div class="form-group"><label>科目</label><input type="text" value="${q.subject}" disabled style="background-color: #eee;"></div>
+                                <div class="form-group">
+                                    <label>科目</label>
+                                    <select name="subject" required onchange="window.handleEditQuestionSubjectChange(this.value)">
+                                        ${state.subjects.map(s => 
+                                            `<option value="${s.name}" ${s.name === q.subject ? 'selected' : ''}>${s.name}</option>`
+                                        ).join('')}
+                                    </select>
+                                </div>
                                 <div class="form-group">
                                     <label>類別</label>
                                     <select name="category" required>
@@ -4600,7 +4631,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     document.querySelectorAll(".review-button").forEach((btn) => {
-      btn.onclick = () => {
+      btn.onclick = async () => {
         const examId = btn.dataset.examId;
         let exam = state.currentUser?.examHistory?.find((e) => e.id === examId);
         if (!exam && state.selectedStudentAnalyticsData) {
@@ -4608,7 +4639,32 @@ window.addEventListener("DOMContentLoaded", () => {
             (e) => e.id === examId
           );
         }
-        if (exam) setState({ reviewingExam: exam });
+        if (exam) {
+          // 檢查是否有缺少題目資料，若有則即時補拉（學生在 startExam 時是懶載入，所以 allQuestions 不包含所有題目）
+          if (exam.questions && Array.isArray(exam.questions)) {
+            const missingQueryIds = exam.questions.filter(qId => !state.allQuestions.find(q => q.id === qId));
+            if (missingQueryIds.length > 0) {
+              setLoading(true);
+              try {
+                const fetchedQuestions = [];
+                for (const qId of missingQueryIds) {
+                  const qDoc = await getDoc(doc(db, "questions", qId));
+                  if (qDoc.exists()) {
+                    fetchedQuestions.push({ id: qDoc.id, ...qDoc.data() });
+                  }
+                }
+                if (fetchedQuestions.length > 0) {
+                  state.allQuestions = [...state.allQuestions, ...fetchedQuestions];
+                }
+              } catch (err) {
+                console.error("Failed to fetch missing questions for review view", err);
+              } finally {
+                setLoading(false);
+              }
+            }
+          }
+          setState({ reviewingExam: exam });
+        }
       };
     });
 
